@@ -1,0 +1,225 @@
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2><%= @contact.cell_phone%> Messages</h2>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="<%= url_for :controller => 'inbox', :action => 'overview' %>">InBox</a>
+            </li>
+            <li class="breadcrumb-item active">
+                <strong><%= @contact.cell_phone%></strong>
+            </li>
+        </ol>
+        <div class="social-body text-right">
+            <small class="text-muted">Communication will occur through the number: <strong><%= @long_code.pretty %></strong></small>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<%
+=begin%>
+ <div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+
+        <div class="col-lg-12">
+
+            <div class="social-feed-box">
+
+                <div class="social-avatar">
+                    <div class="media-body">
+                        <%= link_to "To: #{@contact.cell_phone}", contacts_show_path(id: @contact.id) %>
+                        <small class="text-muted"><%= @response_message.created_at.in_time_zone(current_user.organization.timezone).strftime("%a, %-m-%e-%Y %l:%M %p") %></small>
+                    </div>
+                    <div class="social-body text-right">
+                        <small class="text-muted">Communication will occur through the number: <strong><%= @long_code.pretty %></strong></small>
+                    </div>
+                </div>
+                <div class="social-comment">
+                    <%= form_tag(inbox_twilio_send_path(contact_id: @contact.id), method: :post) do %>
+
+                    <div class="media-body">
+                        <%= text_field_tag :message, nil, placeholder: "Write a reply here...", class: "form-control" %>
+                    </div>
+                    <br />
+                    <div class="media-body">
+                        <%= submit_tag "Send", exitclass: "btn btn-primary float-right"  %>
+                    </div>
+                    <% end %>
+                </div>
+                <div class="social-footer">
+                    <% for m in @message_history %>
+                        <div class="social-comment">
+                            <div class="media-body">
+                                <a href="#">
+                                    <%= m.from == @long_code ? current_user.organization.name : m.from %>
+                                </a>
+                                <% if m.media %>
+                                    <% media_array = DirectMessageMedium.where(direct_message_id: m.id).order(:media_number) %>
+                                    <% for media in media_array %>
+                                        <%= media.media_url %>
+                                    <% end %>
+                                <% end %>
+                                <%= m.message %>
+                                <br/>
+                                <small class="text-muted"><%= m.created_at.in_time_zone(current_user.organization.timezone).strftime("%a, %-m-%e-%Y %l:%M %p") %></small>
+                            </div>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+<%
+=end%>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+
+    <div class="row m-b-lg m-t-lg">
+        <div class="col-md-6">
+            <div class="profile-image">
+                <img src="<%= image_path('logos/Mobilize_Logo_Comms_Mark Black.png') %>" class="img-lg m-b-md" alt="profile">
+            </div>
+            <div class="profile-info">
+                <div class="">
+                    <div>
+                        <h2 class="no-margins">
+                            <%= number_to_phone(@contact.cell_phone) %>
+                        </h2>
+                        <h4><%= @contact.name.empty? ? "No Name" : @contact.name %></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <table class="table small m-b-xs">
+                <tbody>
+                <tr>
+                    <td>
+                        <strong><%= @contact.primary_email %></strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong><%= @contact.secondary_email %></strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong><%= @contact.company_name %></strong>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-3">
+            <small>Created On</small>
+            <h2 class="no-margins"><%= @contact.created_at.in_time_zone(@organization.timezone).strftime("%-m-%e-%Y %l:%M %p") %></h2>
+            <div id="sparkline1"></div>
+        </div>
+
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-lg-8">
+
+            <div class="social-feed-box">
+
+                <div class="social-avatar">
+                    <%= form_tag(inbox_twilio_send_path(contact_id: @contact.id), method: :post) do %>
+
+                        <div class="media-body">
+                            <%= text_area_tag :message, nil, placeholder: "Write a message here...", class: "form-control" %>
+                        </div>
+                        <br />
+                        <div class="media-body">
+                            <%= submit_tag "Send", class: "btn btn-primary float-right"  %>
+                        </div>
+                    <% end %>
+                </div>
+
+                <div class="social-footer">
+                    <% for m in @message_history %>
+
+                        <div class="social-comment">
+                            <% is_organization = m.from == @long_code.real ? true : false %>
+                            <% logger.info("MFROM #{m.from} LNG: #{@long_code.real}") %>
+                            <% if is_organization %>
+                                <a href="" class="float-left">
+                                    <img alt="image" src="<%= image_path('logos/Mobilize_Logo_Comms_Mark Black.png') %>">
+                                </a>
+                            <% end %>
+                            <div class="media-body">
+                                <% if is_organization %>
+                                    <a>
+                                        <%= @organization.name %>
+                                    </a>
+                                <% else %>
+                                    <%= link_to number_to_phone(@contact.cell_phone), contacts_show_path(id: @contact.id) %>
+                                <% end %>
+                                <% if m.media %>
+                                    <% media_sources = m.direct_message_medium.order(:media_number) %>
+                                    <% for md in media_sources %>
+                                        <img src="<%= md.media_url %>" class="img-fluid">
+                                    <% end %>
+                                <% end %>
+                                <br />
+                                <%= m.message %>
+                                <small class="text-muted float-right"><%= m.created_at.in_time_zone(@organization.timezone).strftime("%a, %-m-%e-%Y %l:%M %p") %></small>
+                            </div>
+                        </div>
+
+                    <% end %>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 m-b-lg">
+            <div id="vertical-timeline" class="vertical-container light-timeline no-margins">
+                <% for r in @responses %>
+                    <div class="vertical-timeline-block">
+                        <div class="vertical-timeline-icon navy-bg">
+                            <i class="fa fa-comment"></i>
+                        </div>
+
+                        <div class="vertical-timeline-content">
+                            <h2><%= r.keyword %></h2>
+                            <p><%= r.message %>
+                            </p>
+                            <span class="vertical-date">
+                                <%= r.created_at.in_time_zone(@organization.timezone).strftime("%a") %> <br/>
+                                <small> <%= r.created_at.in_time_zone(@organization.timezone).strftime("%-m-%e-%Y %l:%M %p") %></small>
+                            </span>
+                        </div>
+                    </div>
+                <% end %>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<% content_for :javascript do %>
+    <script type="text/javascript">
+        page_set_storage("InboxFeed");
+    </script>
+<% end %>
+   

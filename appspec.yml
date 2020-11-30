@@ -1,0 +1,12 @@
+version: 0.0
+os: linux
+files: 
+  - source: .
+    destination: /var/www/mus-rails
+hooks:
+  BeforeInstall: 
+    - location: LaunchScripts/Application/BeforeInstall.sh
+  AfterInstall:
+    - location: LaunchScripts/Application/AfterInstall.sh
+  ApplicationStart:
+    - location: LaunchScripts/Application/ApplicationStart.sh

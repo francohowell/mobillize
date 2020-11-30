@@ -1,0 +1,42 @@
+
+<div class="modal-body scroll_content">
+    <table class="table table-hover">
+        <tbody>
+            <% for question in @all_questions %>
+                <tr>
+                    <td class="project-status">
+                        <% if question.is_text? %>
+                            <span class="label label-success">Short Answer</span>
+                        <% elsif question.is_number? %>
+                            <span class="label label-mindaro">Number</span>
+                        <% elsif question.is_date? %>
+                            <span class="label label-eton-blue">Date</span>
+                        <% elsif question.is_location? %>
+                            <span class="label label-bluetiful">Address</span>
+                        <% elsif question.is_yes_no? %>
+                            <span class="label label-warning">Yes/No</span>
+                        <% elsif question.is_mc? %>
+                            <span class="label label-danger">Drop Down</span>
+                        <% elsif  question.is_rating? %>
+                            <span class="label label-info">Rating</span>
+                        <% elsif  question.is_phone_number? %>
+                            <span class="label label-silver-chalice">Phone Number</span>
+                        <% elsif  question.is_signature? %>
+                            <span class="label label-danger">Signature</span>
+                        <% end %>
+                        <br />
+                        <small><%= question.survey.name %> Survey</small>
+                    </td>
+                    <td class="project-title col-md-">
+                        <%= truncate(question.question, :length => 50, :escape => false)  %>
+                    </td>
+                    <td class="project-actions">
+                        <%= button_to survey_question_duplicate_path(survey_id: @survey.id, existing_question_id: question.id), class: "btn btn-white btn-sm import-question", id: "import-#{question.id}" do %>
+                            <i class="fa fa-plus"></i> Import
+                        <% end %>
+                    </td>
+                </tr>
+            <% end %>
+        </tbody>
+    </table>
+</div>

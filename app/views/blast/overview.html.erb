@@ -1,0 +1,152 @@
+<%= stylesheet_link_tag "commerce" %>
+<%= javascript_include_tag "commerce" %>
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2>Blast Overview</h2>
+    </div>
+
+</div>
+
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInUp">
+    <div class="row wrapper">
+        <div class="col-lg-12">
+
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Blasts</h5>
+
+                    <div class="ibox-tools">
+                        <%= link_to "Create new blast", blast_new_path, class: "btn btn-primary btn-xs"%>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="row m-b-sm m-t-sm">
+                        <div class="col-md-1">
+                            <button type="button" id="loading-example-btn" class="btn btn-white btn-sm"><i class="fa fa-refresh"></i> Refresh</button>
+                        </div>
+                        <div class="col-md-11">
+                            <div class="input-group"><input type="text" placeholder="Search" class="form-control-sm form-control"> <span class="input-group-btn">
+                                            <button type="button" class="btn btn-sm btn-primary"> Go!</button> </span></div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-12">
+                        <table class="footable table table-hover table-stripped toggle-arrow-tiny">
+                            <thead>
+                                <tr>
+                                    <th data-toggle="true">Keyword</th>
+                                    <th data-hide="phone">Status</th>
+                                    <th data-hide="phone">Send Time</th>
+                                    <th data-hide="all" data-sort-ignore="true">Full Message</th>
+                                    <th data-sort-ignore="true">Message</th>
+                                    <th class="text-right" data-sort-ignore="true">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for b in @blasts %>
+                                    <tr>
+                                        <td>
+                                            <strong><%= b.keyword_name.upcase %></strong>
+                                        </td>
+                                        <td>
+                                            <% if b.send_date_time < Time.now %>
+                                                <span class="label label-primary">Sent</span>
+                                            <% else %>
+                                                <span class="label label-warning">Scheduled</span>
+                                            <% end %>
+                                        </td>
+                                        <td>
+                                            <%= b.send_date_time.in_time_zone(@current_user.organization.timezone).strftime('%m/%d/%Y %H:%M %p %Z')%>
+                                        </td>
+                                        <td>
+                                            <%= word_wrap(b.message, line_width: 80) %>
+                                        </td>
+                                        <td>
+                                            <%= truncate(b.message, :length => 30) %>
+                                        </td>
+
+                                        <td class="text-right">
+                                            <div class="btn-group">
+                                                <%= link_to blast_show_path(blast_id: b.id), class: "btn btn-white btn-xs" do %>
+                                                    <i class="fa fa-eye"></i> View </a>
+                                                <% end %>
+                                                <% if b.send_date_time > Time.now && b.job_id != nil %>
+                                                    <%= link_to blast_edit_path(id: b.id), class: "btn btn-white btn-xs" do %>
+                                                        <i class="fa fa-pencil"></i> Edit </a>
+                                                    <% end %>
+                                                <% end %>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% end %>
+                            </tbody>
+                        </table>
+                        <%== pagy_bootstrap_nav(@pagy_b) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<br />
+
+
+<% content_for :javascript do %>
+
+<script type="text/javascript">
+
+function simpleLoad(btn, state) {
+    if (state) {
+        btn.children().addClass('fa-spin');
+        btn.contents().last().replaceWith(" Loading");
+    } else {
+        setTimeout(function () {
+            btn.children().removeClass('fa-spin');
+            btn.contents().last().replaceWith(" Refresh");
+        }, 2000);
+    }
+}
+
+$(function() {
+
+    page_set_storage("BlastOverview");
+
+    $('.footable').footable({
+		"paging": {
+			"size": 20
+		}
+	});
+
+    $('#loading-example-btn').click(function () {
+        btn = $(this);
+        simpleLoad(btn, true)
+
+        // Ajax example
+//                $.ajax().always(function () {
+//                    simpleLoad($(this), false)
+//                });
+
+        simpleLoad(btn, false)
+    });
+
+});
+
+</script>
+
+<% end %>

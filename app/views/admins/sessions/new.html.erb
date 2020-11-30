@@ -1,0 +1,30 @@
+
+<div class="middle-box text-center loginscreen animated fadeInDown">
+    <div>
+        <div>
+
+          <%= image_tag("logos/Mobilize_Logo_Comms_Special Aqua.png", class: "img-lg")%>
+
+        </div>
+        <h3>Mobilize Comms Administration</h3>
+      
+        <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+          <div class="field">
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "Email", required: true, class: "form-control" %>
+          </div>
+          <br />
+          <div class="field">
+            <%= f.password_field :password, autocomplete: "current-password", placeholder: "Password", required: true, class: "form-control" %>
+          </div>
+          <br />
+          <div class="actions">
+            <%= f.submit "Log In", class: "btn btn-sm btn-primary btn-block" %>
+          </div>
+        <% end %>
+        <br />
+        <%= render "admins/shared/links" %>
+        <p class="m-t"> <small>Mobilize Comms + Blueprint 108 LLC © 2020</small> </p>
+    </div>
+</div>
+
+

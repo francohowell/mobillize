@@ -1,0 +1,195 @@
+<%= stylesheet_link_tag "multiform" %>
+<%= javascript_include_tag "forms" %>
+
+ <!-- Alerts -->
+<br />
+<div class="row justify-content-md-center">
+  <% flash.each do |key, value| %>
+    <% if key == "success" || key == "notice" %>
+        <div class="col-lg-10 alert alert-dismissable alert-success">
+        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+    <% else %>
+        <div class="col-lg-10 alert alert-dismissable alert-danger">
+        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+    <% end %>
+    <% if value.kind_of?(Array) %>
+      <ul>
+        <% value.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    <% else %>
+      <%= value %>
+    <% end %>
+    </div>
+  <% end %>
+</div>
+
+<div class="wrapper" id="loadingarea">
+  <div class="sk-spinner sk-spinner-wave">
+      <div class="sk-rect1"></div>
+      <div class="sk-rect2"></div>
+      <div class="sk-rect3"></div>
+      <div class="sk-rect4"></div>
+      <div class="sk-rect5"></div>
+  </div>
+  <%= form_tag(session_path(resource_name), method: "post", id: "wizard") do %>
+    <!-- SECTION 1 -->
+    <h2></h2>
+    <section>
+      <div class="inner">
+        <div class="image-holder">
+          <%= image_tag "MC_Sign_In.png", alt: "Mobilize Comms Banner", style: "height:100%" %>
+        </div>
+        <div class="form-content" >
+          <div class="form-header">
+            <%= image_tag "logos/Mobilize_Logo_Comms_Special Aqua.png", alt: "MUS Logo", size: "50x50" %>
+            <h3>Sign In</h3>
+          </div>
+          <div class="form-row">
+            <div class="form-holder text-center w-100">
+              Need an account?
+              <%= link_to "Sign Up Now", new_user_registration_path, class: "btn btn-primary btn-xl" %>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-holder w-100">
+                <%= email_field_tag "user[email]", nil, placeholder: "Your Email", autofocus: true, autocomplete: "email", id: "user_email", class: "form-control required" %>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-holder w-100">
+              <%= password_field_tag "user[password]", nil, placeholder: "Password", autocomplete: "new-password", id: "password", class: "form-control required" %>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-holder w-100">
+              <small><%= link_to "Forgot password?", new_password_path(resource_name) %></small><br />
+            </div>
+            <div class="form-holder w-100">
+              <small><%= link_to "Didn't receive confirmation instructions?", new_confirmation_path(resource_name) %></small><br />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="text-center">
+      <small>Mobilize Comms is a no-spam platform. Please see our <%= link_to "Privacy Policy", privacy_policy_path, target: "_blank" %>, <%= link_to "Terms Of Use", terms_conditions_path, target: "_blank" %> and <%= link_to "Anti-Spam Policy", spam_policy_path, target: "_blank" %> BY CLICKING THE LINKS.</small>
+          <br />
+          <small>To unsubscribe from any Mobilize Comms list text <strong>STOP</strong> to 94502 or contact <a href="http://support.mobilizeus.com" target="_blank">Support</a>. We <strong>DO NOT</strong> use or provide lists of phone numbers <strong>EVER</strong>.</small>
+      </div>
+    </section>
+    
+  <% end %>
+</div>
+
+
+        
+
+<% content_for :javascript do %>
+
+  <script type="text/javascript">
+
+
+       /* Sample function that returns boolean in case the browser is Internet Explorer*/
+        function isIE() {
+            ua = navigator.userAgent;
+        /* MSIE used to detect old browsers and Trident used to newer ones*/
+            var is_ie = ua.indexOf("MSIE ") > -1 || ua.indexOf("Trident/") > -1;
+        
+            return is_ie; 
+        };
+
+        $(function() {
+            /* 
+            Create an alert to show if the browser is IE */
+            if (isIE()){
+                console.log("Internet Explorer Detected");
+                swal({
+                    title: "Internet Explorer Warning",
+                    text: "It looks as though you are using Internet Explorer to access the new Mobilize Comms platform. Internet Explorer is not fully compatible with our platform and we would advise using Edge, Safari, Chrome or Firefox."
+                });
+            }else{
+              console.log("NOT Detected");
+            }
+
+        });
+
+    $(function(){
+        $("#wizard").steps({
+            headerTag: "h2",
+            bodyTag: "section",
+            transitionEffect: "fade",
+            enableAllSteps: false,
+            transitionEffectSpeed: 500,
+            labels: {
+                finish: "Sign In",
+            },
+            onFinishing: function (event, currentIndex) {
+                var form = $(this);
+
+                // Disable validation on fields that are disabled.
+                // At this point it's recommended to do an overall check (mean ignoring only disabled fields)
+                form.validate().settings.ignore = ":disabled";
+
+                // Start validation; Prevent form submission if false
+                return form.valid();
+            },
+            onFinished: function (event, currentIndex) {
+              $('#loadingarea').toggleClass('sk-loading');
+
+              $(this).submit();
+            }
+        });
+
+        $('.wizard > .steps li a').click(function(){
+          $(this).parent().addClass('checked');
+          $(this).parent().prevAll().addClass('checked');
+          $(this).parent().nextAll().removeClass('checked');
+        });
+        // Custome Jquery Step Button
+        $('.forward').click(function(){
+          $("#wizard").steps('next');
+        })
+        $('.backward').click(function(){
+            $("#wizard").steps('previous');
+        })
+        // Select Dropdown
+        $('html').click(function() {
+            $('.select .dropdown').hide(); 
+        });
+        $('.select').click(function(event){
+            event.stopPropagation();
+        });
+        $('.select .select-control').click(function(){
+            $(this).parent().next().toggle();
+        })    
+        $('.select .dropdown li').click(function(){
+            $(this).parent().toggle();
+            var text = $(this).attr('rel');
+            $(this).parent().prev().find('div').text(text);
+        })
+
+        var arrayOfElements=document.getElementsByClassName('steps');
+        var lengthOfArray=arrayOfElements.length;
+
+        for (var i=0; i<lengthOfArray;i++){
+            arrayOfElements[i].style.display='none';
+        }
+        
+        var formInputs = document.querySelectorAll('.form-control');
+        // var i;
+        for (var i = 0; i < formInputs.length; i++) {
+            // Prevent Enter Event
+            formInputs[i].onkeypress = function(e) {
+                var key = e.charCode || e.keyCode || 0;
+                if (key == 13) {
+                    $('#wizard').submit();
+                }
+            }
+        }
+    });
+
+
+  </script>
+
+<% end %>

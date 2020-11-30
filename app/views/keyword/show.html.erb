@@ -1,0 +1,279 @@
+<%= stylesheet_link_tag "miscellaneous" %>
+<%= javascript_include_tag "miscellaneous" %>
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-4">
+        <h2><%= @kw.name %></h2>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="<%= url_for :controller => 'dashboards', :action => 'dashboard' %>">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="<%= url_for :controller => 'groups', :action => 'overview' %>">Keywords Overview</a>
+            </li>
+            <li class="breadcrumb-item active">
+                <strong>Keyword Details</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInUp">
+    <div class="row">
+        <div class="col-lg-12">
+
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="m-b-md">
+                                <%= link_to "Edit Keyword", keyword_edit_path(id: @kw.id),  class: "btn btn-white btn-xs float-right" %>
+
+                                <h2><%= @kw.name %> Keyword</h2>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Created by:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <% if @created_by_user %>
+                                        <dd class="mb-1"><%= @created_by_user.name %></dd>
+                                    <% else %>
+                                        <dd class="mb-1">DeActivated User</dd>
+                                    <% end %>
+                                </div>
+                            </dl>
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Groups:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <dd class="mb-1"> <%= @kw.groups.count %></dd>
+                                </div>
+                            </dl>
+                        </div>
+                        <div class="col-lg-6" id="cluster_info">
+
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Last Updated:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <dd class="mb-1"><%= @kw.updated_at.localtime.strftime("%B %-d, %Y %l:%M %p")%></dd>
+                                </div>
+                            </dl>
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Created:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <dd class="mb-1"><%= @kw.created_at.localtime.strftime("%B %-d, %Y %l:%M %p")%></dd>
+                                </div>
+                            </dl>
+                        </div>
+                        <br />
+                        <div class="col-lg-6" id="cluster_info">
+
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Invitation Text:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <dd class="mb-1"><%= @kw.invitation_text %></dd>
+                                </div>
+                            </dl>
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Opt In Text:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <dd class="mb-1"><%= @kw.opt_in_text %></dd>
+                                </div>
+                            </dl>
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Opt In Media:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <dd class="mb-1">
+                                        <% if !@kw.opt_in_media.blank? %>
+                                            <%= image_tag @kw.opt_in_media.url, class: ".img-md", alt: "Opt In Media" %>
+                                        <% end %>
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
+                        <div class="col-lg-6" id="cluster_info">
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Help Text:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <dd class="mb-1"><%= @kw.help_text.nil? ? "#{@kw.name.upcase} Please contact #{@kw.organization.users.first.email}. Reply STOP to cancel, HELP for help. Msg and Data Rates May Apply." : @kw.help_text %></dd>
+                                </div>
+                            </dl>
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Opt Out Text:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-right">
+                                    <dd class="mb-1"><%= @kw.opt_out_text %></dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="m-b-md">
+                                <h2>Opt In Widget</h2>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Opt In Link:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <%= link_to "#{request.base_url}/keyword/optin?id=#{@kw.id}",  keyword_optin_path(id: @kw.id), target: "_blank"%>
+                                </div>
+                                <br />
+                            </dl>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="ibox ">
+                                <div class="ibox-title">
+                                    <h5><%= @kw.name %> iFrame</h5>
+                                </div>
+                                <div class="ibox-content">
+                                    <p class="m-b-lg">
+                                        Place this code on your own website!
+                                    </p>
+                                    <textarea id="code1"><iframe src="<%= request.base_url %>/optin/?id=<%= @kw.id %>" id="<%= @kw.name %>-mus">
+    <p><%= link_to request.base_url + "/optin/?id=" + @kw.id.to_s,  "#{request.base_url}/optin/?id=#{@kw.id.to_s}" %></p>
+</iframe></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row m-t-sm">
+                        <div class="col-lg-12">
+                            <div class="panel blank-panel">
+                                <div class="panel-heading">
+                                    <div class="panel-options">
+                                        <ul class="nav nav-tabs">
+                                           <li><a class="nav-link active" href="#tab-1" data-toggle="tab">Admins</a></li>
+                                            <li><a class="nav-link" href="#tab-2" data-toggle="tab">Groups</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="panel-body">
+
+                                    <div class="tab-content">
+
+                                        <div class="tab-pane" id="tab-1">
+
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr>
+                                                    <th>Group Name</th>
+                                                    <th>Group Description</th>
+                                                    <th>Group Contacts</th>
+                                                    <th>View</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% for g in @kw.groups %>
+                                                        <tr>
+                                                            <td>
+                                                                <%= g.name %>
+                                                            </td>
+                                                            <td>
+                                                                <%= g.description %>
+                                                            </td>
+                                                            <td>
+                                                                <%= g.contacts.count %>
+                                                            </td>
+                                                            <td>
+                                                                <%= link_to groups_show_path(id: g.id), class: "btn btn-white btn-sm" do %>
+                                                                    <i class="fa fa-eye"></i> View
+                                                                <% end %>
+                                                            </td>
+                                                        </tr>
+                                                    <% end %>
+                                                </tbody>
+                                            </table>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<% content_for :javascript do %>
+
+<script type="text/javascript">
+
+    $(function() {
+        page_set_storage("KeywordShow");
+        $('.demo3').click(function () {
+            swal({
+                title: "Are you sure you want to reset the group?",
+                text: "You will lose all your contacts.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, reset it!",
+                closeOnConfirm: true
+            }, function () {
+                console.log("YAY");
+                // window.location = "/groups/overview";
+                $.ajax("/groups/render_read")
+            });
+        });
+
+        var editor_one = CodeMirror.fromTextArea(document.getElementById("code1"), {
+            lineNumbers: true,
+            matchBrackets: true,
+            styleActiveLine: true,
+            theme: "ambiance"
+        });
+
+
+
+    });
+
+</script>
+
+
+
+<% end %>

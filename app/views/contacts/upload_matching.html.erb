@@ -1,0 +1,72 @@
+<%= stylesheet_link_tag "miscellaneous" %>
+<%= javascript_include_tag "miscellaneous" %>
+<%= stylesheet_link_tag "forms" %>
+<%= javascript_include_tag "forms" %>
+
+<!-- Bread Crumb -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-5">
+        <h2>Map Your Contact Fields</h2>
+         <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="<%= url_for :controller => 'contacts', :action => 'new' %>">Add Contacts</a>
+            </li>
+            <li class="breadcrumb-item active">
+                Contact Fields From <%= @cu.file.identifier %>
+            </li>
+        </ol>
+    </div>
+</div>
+
+<!-- Alert Management -->
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInRight" id="loadingarea">
+        <div class="ibox col-lg-12">
+            <div class="ibox-title text-center">
+                <h5>Map Your Contacts</h5>
+            </div>
+            <div class="ibox-content text-center">
+                <%= form_tag(contacts_upload_headers_path, method: "POST", id: "headers-form") do %>
+                    <% @headers.each do |category| %>
+                        <input type="hidden" name="upload_id" value=<%= @cu.id %> />
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label float-left"><%= category %></label>
+                            <div class="col-sm-6">
+                                <%= select_tag category, options_for_select(@uploaded_headers), include_blank: "Select A Contact Field", class: "form-control chosen-select", required: category == "Cell Phone" ? true : false %>
+                            </div>
+                        </div>
+                        <div class="hr-line-dashed"></div>
+                    <% end %>
+                    <br />
+                    <div class="row justify-content-md-center">
+                        <div class="checkbox checkbox-success">
+                            <input type="checkbox" id="permission" name="permission" value="true" required>
+                            <label for="permission"> I have permission from all contacts to text them</label>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row justify-content-md-center">
+                        <div class="col-lg-6">
+                            <%= submit_tag("Start Contact Upload", id: "submit-headers", form: "headers-form", class: "btn btn-block btn-primary") %>
+                        </div>
+                    </div>
+                <% end %>
+            </div>
+        </div>
+    <br />
+    <br />
+    <br />
+</div>

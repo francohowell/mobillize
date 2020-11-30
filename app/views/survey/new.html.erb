@@ -1,0 +1,410 @@
+<%= stylesheet_link_tag "miscellaneous" %>
+<%= javascript_include_tag "miscellaneous" %>
+<%= stylesheet_link_tag "forms" %>
+<%= stylesheet_link_tag "widgets" %>
+<%= javascript_include_tag "forms" %>
+
+<!-- Bread Crumb -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-4">
+        <h2>New Survey</h2>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="<%= url_for :controller => 'survey', :action => 'overview' %>">Survey Overview</a>
+            </li>
+            <li class="breadcrumb-item active">
+                <strong>New Survey</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+<!-- Alerts -->
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <div class="col-lg-7 alert alert-dismissable alert-<%= key == "success" || key == "notice" ? "success" : "danger" %>">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInRight" id="loadingarea">
+    <div class="sk-spinner sk-spinner-wave">
+        <div class="sk-rect1"></div>
+        <div class="sk-rect2"></div>
+        <div class="sk-rect3"></div>
+        <div class="sk-rect4"></div>
+        <div class="sk-rect5"></div>
+    </div>
+
+    <!-- New Survey Instructions -->
+    <div class="col-lg-12">
+        <div class="ibox ">
+            <div class="ibox-title text-centered">
+                <h2>Create A Survey</h2>
+            </div>
+
+
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="ibox ">
+            <div class="ibox-title text-centered">
+                <h5>Survey Details</h5>
+            </div>
+
+            <div class="ibox-content">
+                <%= form_for @survey, url: {action: "create", controller: "survey"} do |f| %>
+                <!-- Name -->
+                <div class="form-group row">
+                    <label class="col-lg-2 col-form-label">Name<small style="color:red;">*</small></label>
+                    <div class="col-lg-10"> <%= f.text_field :name, value: @survey.name ? @survey.name : nil, placeholder: "Name of the survey or poll", required: true, class: "form-control"%>
+                    </div>
+                </div>
+                <!-- Description -->
+                <div class="form-group row"><label class="col-lg-2 col-form-label">Description</label>
+                    <div class="col-lg-10"> <%= f.text_area :description, value: @survey.description ? @survey.description : nil, placeholder: "Description of your survey or poll", class: "form-control"%>
+                    </div>
+                </div>
+                <!-- Keywords -->
+                <div class="form-group row">
+                    <label class="col-lg-2 col-form-label">
+                        Keyword<small style="color:red;">*</small>
+                    </label>
+                    <div class="col-lg-10">
+                        <%= select_tag "keyword", options_from_collection_for_select(@current_organization.keywords, "id", "name"), include_blank: true, required: true, multiple: true, class: "form-control select2_demo_2", id: "keyword_select"  %>
+                        <span class="form-text m-b-none">Choose a keyword for this survey to be attached to. All opt-ins to the keyword will be given the survey link.</span>
+                    </div>
+                </div>
+                <!-- Start + End Date -->
+                <div class="form-group row">
+                    <label class="col-lg-2 col-form-label">Start Date<small style="color:red;">*</small></label>
+                    <div class="col-lg-4 input-group date">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span><%= f.text_field   :start_date_time, value: @survey.start_date_time ? @survey.start_date_time.in_time_zone(@current_organization.timezone).strftime("%m/%d/%Y") : DateTime.now.in_time_zone(@current_organization.timezone).strftime("%m/%d/%Y"), class: "form-control", id: "date" %>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-lg-2 col-form-label">End Date<small style="color:red;">*</small></label>
+                    <div class="col-lg-4 input-group date">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span><%= f.text_field   :end_date_time, value: @survey.end_date_time ? @survey.end_date_time.in_time_zone(@current_organization.timezone).strftime("%m/%d/%Y") : (DateTime.now.in_time_zone(@current_organization.timezone) + 1.months).strftime("%m/%d/%Y"), class: "form-control", id: "date" %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="ibox ">
+            <div class="ibox-title text-centered">
+                <h5>Survey Messaging</h5>
+            </div>
+            <div class="ibox-content">
+                <!-- Starting Message -->
+                <div class="form-group row">
+                    <label class="col-lg-2 col-form-label">Starting Message<small style="color:red;">*</small></label>
+                    <div class="col-lg-10">
+                        <div class="input-group m-b">
+                            <%= f.text_field :start_message, value: @survey.start_message ? @survey.start_message : nil, placeholder: "Message", class: "form-control", onchange: "calculate_rate('start-rate', this);", onload: "calculate_rate('start-rate', this);", id: "start"%>
+                            <div class="input-group-append">
+                                <span class="input-group-addon" style="background-color: #3AC1CC; border-color: #3AC1CC; color: white;">
+                                    <span id="start-rate">1x</span> <small>Rate</small>
+                                </span>
+                            </div>
+                        </div>
+                        <span class="form-text m-b-none">Example: Thank you for electing to start our survey.</span>
+                    </div>
+                </div>
+
+                <!-- Completion Message -->
+                <div class="form-group row"><label class="col-lg-2 col-form-label">Completing Message<small style="color:red;">*</small></label>
+                    <div class="col-lg-10">
+                        <%= f.text_area :completion_message, 'data-provider': :summernote, value: @survey.completion_message ? @survey.completion_message : nil, placeholder: "Message", required: true, class: "form-control summernote"%>
+                        <span class="form-text m-b-none">Example: Thank you for completing our survey.</span>
+                    </div>
+                </div>
+
+                <!-- Confirmation Text Boolean -->
+                <div class="form-group row">
+                    <label class="col-lg-2 col-form-label"></label>
+                    <div class="col-lg-10">
+                        <div class="i-checks">
+                            <% if @survey.confirmation_text %>
+                                <input type="checkbox" id="confirm-txt-checkbox" checked>
+                            <% else %>
+                                <input type="checkbox" id="confirm-txt-checkbox">
+                            <% end %>
+                            <label for="confirm-txt-checkbox">Send text confirmation after contacts complete survey
+                        </div>
+                    </div>
+                </div>
+                <!-- Confirmation Text Message -->
+                <div class="form-group row" id="comp-text" style="display: none" >
+                    <label class="col-lg-2 col-form-label">Completion Text</label>
+                    <div class="col-lg-10">
+                        <div class="input-group m-b">
+                            <%= f.text_field :confirmation_text, value: nil, placeholder: "Message", class: "form-control", onchange: "calculate_rate('start-rate-cmsg', this);", onload: "calculate_rate('start-rate-cmsg', this);", id: "start-cmsg" %>
+                            <div class="input-group-append">
+                                <span class="input-group-addon" style="background-color: #3AC1CC; border-color: #3AC1CC; color: white;">
+                                    <span id="start-rate-cmsg">1x</span> <small>Rate</small>
+                                </span>
+                            </div>
+                        </div>
+                        <span class="form-text m-b-none">Example: Thank you for taking our survey. Your confirmation link can be found here: </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="ibox ">
+            <div class="ibox-title text-centered">
+                <h5>Survey User Behavior</h5>
+            </div>
+            <div class="ibox-content">
+                <!-- Multiple Responses -->
+                <div class="form-group row">
+                    <div class="col-lg-6">
+                        <label class="float-right">Users Can Complete The Survey Multiple Times</label>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="i-checks float-left">
+                            <label>
+                                <%= f.select :multiple_responses_allowed, options_for_select(["Yes", "No"], @survey.multiple_responses_allowed) %>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Show Take Again -->
+                <div class="form-group row">
+                    <div class="col-lg-6">
+                        <label class="float-right">Show The Take Survey Again Option On Survey Completion Page</label>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="i-checks float-left">
+                            <label>
+                                <%= f.select :show_take_again, options_for_select(["Yes", "No"], @survey.show_take_again) %>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preload Previous Answers -->
+                <div class="form-group row">
+                    <div class="col-lg-6">
+                        <label class="float-right">Survey Preloads With User's Last Submission</label>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="i-checks float-left">
+                            <label>
+                                <%= f.select :preload, options_for_select(["Yes", "No"], @survey.preload) %>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="ibox ">
+            <div class="ibox-title text-centered">
+                <h5>Survey Submit</h5>
+            </div>
+            <div class="ibox-content">
+                <!-- Submit Button Text -->
+                <div class="form-group row"><label class="col-lg-2 col-form-label">Submit Button Text</label>
+                    <div class="col-lg-10">
+                        <%= f.text_field :submit_button_text, value: @survey.submit_button_text ? @survey.submit_button_text : nil, placeholder: "Submit Button Text", class: "form-control"%>
+                        <span class="form-text m-b-none">Default: Submit Response</span>
+                    </div>
+                </div>
+                <!-- Submit Pre Text -->
+                <div class="form-group row"><label class="col-lg-2 col-form-label">Submit Area Text</label>
+                    <div class="col-lg-10">
+                        <%= f.text_area :submit_text, 'data-provider': :summernote, value: @survey.submit_text ? @survey.submit_text : nil, placeholder: "Submit Area Text", class: "form-control summernote"%>
+                        <span class="form-text m-b-none">This is a text area before the submit button on your survey.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <% end %>
+    <div class="row justify-content-md-center">
+        <button class="btn btn-lg btn-success" type="submit" id="submit"><strong>Create Survey</strong>  <i class="fa fa-caret-right"></i></button>
+    </div>
+</div>
+<br />
+<br />
+<br />
+
+<% content_for :javascript do %>
+    <script type="text/javascript">
+
+
+        function calculate_rate(id, el) {
+            console.log("Text Change");
+            console.log(`ID: ${id}`);
+            console.log(`This: ${el.value}`);
+            $.ajax({
+                url: "/message_check",
+                type: "GET",
+                dataType: "json",
+                data: {
+                    "message" : el.value,
+                    "keyword_name" : $("#keyword_name").value,
+                },
+                error: function (xhr, status, error) {
+                    console.error(`AJAX Error: ${error}`);
+                },
+                success: function (response) {
+                    console.log(response);
+                    document.getElementById(id).innerHTML = `${response["rate"]}x`;
+                }
+            });
+        };
+
+        function showCompMsg() {
+            compText = document.getElementById('comp-text');
+            compText.style.display = "flex";
+        }
+
+
+
+        function hideCompMsg() {
+            compText = document.getElementById('comp-text');
+            compText.style.display = "none";
+        }
+
+        $(function() {
+            page_set_storage("SurveyNew");
+
+            calculate_rate("start-rate", document.getElementById("start"));
+
+            calculate_rate("start-rate-cmsg", document.getElementById("start-cmsg"));
+
+            $(".select2_demo_2").select2({
+                placeholder: "Choose One Below",
+                allowClear: true
+            });
+
+            $('.summernote').summernote({
+                toolbar: [
+                    [ 'style', [ 'style' ] ],
+                    [ 'font', [ 'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear'] ],
+                    [ 'fontname', [ 'fontname' ] ],
+                    [ 'fontsize', [ 'fontsize' ] ],
+                    [ 'color', [ 'color' ] ],
+                    [ 'para', [ 'ol', 'ul', 'paragraph', 'height' ] ],
+                    [ 'table', [ 'table' ] ],
+                    [ 'insert', [ 'link'] ],
+                    [ 'view', [ 'undo', 'redo', 'fullscreen', 'codeview', 'help' ] ]
+                ]
+            });
+
+            var edit = function () {
+                $('.click2edit').summernote({focus: true});
+            };
+
+            $("#edit").click(function () {
+                $('.click2edit').summernote({focus: true});
+            });
+
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+
+            $('#confirm-txt-checkbox').on('ifChecked', function(event){
+                showCompMsg();
+            });
+
+            $('#confirm-txt-checkbox').on('ifUnchecked', function(event){
+                hideCompMsg();
+            });
+
+
+            $('input[name="daterange"]').daterangepicker();
+
+            $('.input-group.date').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true
+            });
+
+            var form = document.getElementById("new_survey");
+            document.getElementById('submit').addEventListener("click", function () {
+                console.log("SUbmit 1")
+
+                if (document.getElementById('comp-text').style.display == "none") {
+                    $('#comp-text :input').val('');
+                }
+
+                console.log($('#comp-text :input').val());
+
+                var markup = $('.click2edit').summernote('code');
+
+                $('.click2edit').summernote('destroy');
+
+                console.log(`Keyword Select: ${$('#keyword_select').val()}`)
+                if ($('#keyword_select').val() == "" || $('#keyword_select').val() == null) {
+                    swal({
+                        title: "No Keyword Selected",
+                        text: "Please choose a keyword to be attached to the survey.",
+                        type: "warning"
+                    });
+                }else{
+                    $(this).disabled = true;
+
+                    $('#loadingarea').toggleClass('sk-loading');
+
+                    form.submit();
+                }
+            });
+
+            $('#new_survey').submit(function() {
+                console.log("Survey Creation Started");
+
+                $('#loadingarea').toggleClass('sk-loading');
+
+                return true; // return false to cancel form action
+            });
+
+            var start_elem = document.getElementById('start')
+            start_elem.addEventListener('paste', (event) => {
+
+                setTimeout(function () {
+                    // do something with text
+                    calculate_rate("start-rate", start_elem);
+                }, 50);
+
+            });
+            start_elem.addEventListener('keyup', (event) => {
+                calculate_rate("start-rate", start_elem);
+            });
+
+            var start_elem = document.getElementById('start-cmsg')
+            start_elem.addEventListener('paste', (event) => {
+
+                setTimeout(function () {
+                    // do something with text
+                    calculate_rate("start-rate-cmsg", start_elem);
+                }, 50);
+
+            });
+            start_elem.addEventListener('keyup', (event) => {
+                calculate_rate("start-rate-cmsg", start_elem);
+            });
+
+
+        });
+    </script>
+<% end %>

@@ -1,0 +1,299 @@
+<%= stylesheet_link_tag "multiform" %>
+<%= javascript_include_tag "forms" %>
+
+ <!-- Alerts -->
+<br />
+<div class="row justify-content-md-center">
+  <% flash.each do |key, value| %>
+    <% if key == "success" || key == "notice" %>
+        <div class="col-lg-10 alert alert-dismissable alert-success">
+        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+    <% else %>
+        <div class="col-lg-10 alert alert-dismissable alert-danger">
+        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+    <% end %>
+    <% if value.kind_of?(Array) %>
+      <ul>
+        <% value.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    <% else %>
+      <%= value %>
+    <% end %>
+    </div>
+  <% end %>
+</div>
+
+<div class="wrapper" id="loadingarea">
+  <div class="sk-spinner sk-spinner-wave">
+      <div class="sk-rect1"></div>
+      <div class="sk-rect2"></div>
+      <div class="sk-rect3"></div>
+      <div class="sk-rect4"></div>
+      <div class="sk-rect5"></div>
+  </div>
+  <%= form_tag(registration_path(resource_name), method: "post", id: "wizard") do %>
+    <!-- SECTION 1 -->
+    <h2></h2>
+    <section>
+      <div class="inner">
+        <div class="image-holder">
+          <%= image_tag "MC_Sign_Up_1.jpg", alt: "Mobilize Comms Banner", style: "height:100%" %>
+        </div>
+        <div class="form-content" >
+          <div class="form-header">
+            <%= image_tag "logos/Mobilize_Logo_Comms_Special Aqua.png", alt: "MUS Logo", size: "50x50" %>
+            <h3>Account</h3>
+            <h5><%= link_to "Sign In", new_user_session_path %></h5>
+          </div>
+          <p>Your Account Details</p>
+          <div class="form-row">
+            <div class="form-holder">
+              <%= text_field_tag "user[first_name]", @first_name.nil? ? nil : @first_name, placeholder: "First Name", id: "first_name", class: "form-control required", required: true%>
+            </div>
+            <div class="form-holder">
+              <%= text_field_tag "user[last_name]", @last_name.nil? ? nil : @last_name, placeholder: "Last Name", id: "last_name", class: "form-control required"%>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-holder">
+               <%= email_field_tag "user[email]", @email.nil? ? nil : @email, placeholder: "Your Email", autofocus: true, autocomplete: "email", id: "user_email", class: "form-control required" %>
+            </div>
+            <div class="form-holder">
+              <%= text_field_tag "user[cell_phone]", @cell_phone.nil? ? nil : @cell_phone, placeholder: "Your Cell Phone", id: "cell_phone", class: "form-control required"%>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-holder">
+              <%= password_field_tag "user[password]", nil, placeholder: "Password", autocomplete: "new-password", id: "password", class: "form-control required" %>
+            </div>
+            <div class="form-holder">
+              <%= password_field_tag "user[password_confirmation]", nil, placeholder: "Password Confirmation", autocomplete: "new-password", id: "confirm", class: "form-control required" %>
+            </div>
+            <h6 class="text-sm-left">Your password must be a minimum of 8 characters!</h6>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <h2></h2>
+    <section>
+      <div class="inner">
+        <div class="image-holder">
+          <%= image_tag "MC_Sign_Up_2.jpg", alt: "Mobilize Comms Banner", style: "height:100%" %>
+        </div>
+        <div class="form-content">
+          <div class="form-header">
+            <%= image_tag "logos/Mobilize_Logo_Comms_Special Aqua.png", alt: "MUS Logo", size: "50x50" %>
+            <h3>Organization</h3>
+          </div>
+          <p>Your Organization Details</p>
+          <div class="form-row">
+            <div class="form-holder w-100">
+              <%= text_field_tag "user[org_name]", @org_name.nil? ? nil : @org_name, placeholder: "Organization Name", id: "org_name", class: "form-control required"%>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-holder w-100">
+              <%= select_tag "user[size]", options_for_select(industry_sizes, @size.nil? ? nil : @size), id: "size", prompt: "Select Size", class: "form-control required"%>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-holder w-100">
+              <%= select_tag "user[industry]", options_for_select(industries, @industry.nil? ? nil : @industry), id: "industry", prompt: "Select Industry", class: "form-control required"%>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-holder w-100">
+              <%= select_tag "user[time_zone]", options_for_select(ActiveSupport::TimeZone.us_zones.sort_by(&:name).map{|e| "#{e.name}"}, @timezone.nil? ? nil : @timezone), prompt: "Select Time Zone", class: "form-control required", id: "time_zone"%>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <h2></h2>
+    <section>
+        <div class="inner">
+          <div class="image-holder">
+            <%= image_tag "MC_Sign_Up_3.jpg", alt: "Mobilize Comms Banner", style: "height:100%" %>
+          </div>
+          <div class="form-content">
+            <div class="form-header">
+              <h3>Terms & Conditions</h3>
+            </div>
+            <div class="form-row">
+              <div class="form-holder w-100">
+                <div class="terms">
+                  <%= @term.content.html_safe %>
+                </div>
+              </div>
+            </div>
+            <div class="checkbox-circle mt-24">
+              <label>
+                I agree with the Terms and Conditions <input id="acceptTerms" name="acceptTerms" type="checkbox" class="required">
+                <span class="checkmark"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+  <% end %>
+</div>
+
+
+<% content_for :javascript do %>
+
+  <script type="text/javascript">
+
+    $(function(){
+        $("#wizard").steps({
+              headerTag: "h2",
+              bodyTag: "section",
+              transitionEffect: "fade",
+              enableAllSteps: true,
+              transitionEffectSpeed: 500,
+              autoFocus: true,
+              labels: {
+                  finish: "Submit",
+                  next: "Forward",
+                  previous: "Backward"
+              },
+              onStepChanging: function(event, currentIndex, newIndex) {
+
+                console.log(`Event ${event} | Current Index ${currentIndex} | New Index ${newIndex}`)
+                $(".error").remove();
+                if (currentIndex == 0) {
+                  var first_name = $('#first_name').val();
+                  var last_name = $('#last_name').val();
+                  var user_email = $('#user_email').val();
+                  var cell_phone = $('#cell_phone').val();
+                  var password = $('#password').val();
+                  var confirm = $('#confirm').val();
+
+                  if (first_name) {
+                    return true
+                  }else{
+                    $('#first_name').after('<label id="first_name-error" class="error" for="first_name">This field is required.</label>');
+                  }
+                  if (last_name) {
+                    return true
+                  }else{
+                    $('#last_name').after('<label id="last_name-error" class="error" for="last_name">This field is required.</label>');
+                  }
+                  if (user_email) {
+                    return true
+                  }else{
+                    $('#user_email').after('<label id="user_email-error" class="error" for="user_email">This field is required.</label>');
+                  }
+                  if (cell_phone) {
+                    return true
+                  }else{
+                    $('#cell_phone').after('<label id="cell_phone-error" class="error" for="cell_phone">This field is required.</label>');
+                  }
+                  if (password) {
+                    return true
+                  }else{
+                    $('#password').after('<label id="password-error" class="error" for="password">This field is required.</label>');
+                  }
+                  if (confirm) {
+                    return true
+                  }else{
+                    $('#confirm').after('<label id="confirm-error" class="error" for="confirm">This field is required.</label>');
+                  }
+                } else if (currentIndex == 1){
+                  var org_name = $('#org_name').val();
+                  var size = $('#size').val();
+                  var industry = $('#industry').val();
+                  var time_zone = $('#time_zone').val();
+
+                  if (org_name) {
+                    return true
+                  }else{
+                    $('#org_name').after('<label id="org_name-error" class="error" for="org_name">This field is required.</label>');
+                  }
+                  if (size) {
+                    return true
+                  }else{
+                    $('#size').after('<label id="size-error" class="error" for="size">This field is required.</label>');
+                  }
+                  if (industry) {
+                    return true
+                  }else{
+                    $('#industry').after('<label id="industry-error" class="error" for="industry">This field is required.</label>');
+                  }
+                  if (time_zone) {
+                    return true
+                  }else{
+                    $('#time_zone').after('<label id="time_zone-error" class="error" for="time_zone">This field is required.</label>');
+                  }
+                }
+                return false
+                // var form = $(this);
+
+                //   // Disable validation on fields that are disabled.
+                //   // At this point it's recommended to do an overall check (mean ignoring only disabled fields)
+                //   form.validate().settings.ignore = ":disabled";
+
+                //   // Start validation; Prevent form submission if false
+                //   return form.valid();
+              },
+              onFinishing: function (event, currentIndex) {
+                  var form = $(this);
+
+                  // Disable validation on fields that are disabled.
+                  // At this point it's recommended to do an overall check (mean ignoring only disabled fields)
+                  form.validate().settings.ignore = ":disabled";
+
+                  // Start validation; Prevent form submission if false
+                  return form.valid();
+              },
+              onFinished: function (event, currentIndex) {
+                $('#loadingarea').toggleClass('sk-loading');
+
+                $(this).submit();
+              }
+          });
+
+          $('.wizard > .steps li a').click(function(){
+            $(this).parent().addClass('checked');
+            $(this).parent().prevAll().addClass('checked');
+            $(this).parent().nextAll().removeClass('checked');
+          });
+          // Custome Jquery Step Button
+          $('.forward').click(function(){
+            console.log("FORWARD");
+            console.log(`Wizard Valid: ${$("#wizard").valid()}`);
+            if ($("#wizard").valid()) {
+              $("#wizard").steps('next');
+            }
+          })
+          $('.backward').click(function(){
+              $("#wizard").steps('previous');
+          })
+          // Select Dropdown
+          $('html').click(function() {
+              $('.select .dropdown').hide();
+          });
+          $('.select').click(function(event){
+              event.stopPropagation();
+          });
+          $('.select .select-control').click(function(){
+              $(this).parent().next().toggle();
+          })
+          $('.select .dropdown li').click(function(){
+              $(this).parent().toggle();
+              var text = $(this).attr('rel');
+              $(this).parent().prev().find('div').text(text);
+          })
+      })
+
+  </script>
+
+<% end %>

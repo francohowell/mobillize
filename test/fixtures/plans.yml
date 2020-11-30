@@ -1,0 +1,31 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  tag_line: MyString
+  description: MyString
+  icon: MyString
+  messages_included: 1
+  keywords_included: 1
+  data_included: 1
+  monthly_price: 1.5
+  additional_message_cost: 1.5
+  additional_keyword_cost: 1.5
+  active: false
+  inactive_date: 2019-04-20 14:03:45
+  private: false
+
+two:
+  name: MyString
+  tag_line: MyString
+  description: MyString
+  icon: MyString
+  messages_included: 1
+  keywords_included: 1
+  data_included: 1
+  monthly_price: 1.5
+  additional_message_cost: 1.5
+  additional_keyword_cost: 1.5
+  active: false
+  inactive_date: 2019-04-20 14:03:45
+  private: false

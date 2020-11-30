@@ -1,0 +1,2 @@
+module MgageHelper
+end

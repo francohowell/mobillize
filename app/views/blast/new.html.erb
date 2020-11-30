@@ -1,0 +1,645 @@
+<%= stylesheet_link_tag "miscellaneous" %>
+<%= javascript_include_tag "miscellaneous" %>
+
+<%= stylesheet_link_tag "appviews" %>
+<%= javascript_include_tag "appviews" %>
+<!-- Crumb Trail -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2>Create A Blast</h2>
+    </div>
+</div>
+
+<!-- ALERTS -->
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInRight" id="loadingarea">
+    <div class="sk-spinner sk-spinner-wave">
+        <div class="sk-rect1"></div>
+        <div class="sk-rect2"></div>
+        <div class="sk-rect3"></div>
+        <div class="sk-rect4"></div>
+        <div class="sk-rect5"></div>
+    </div>
+    <%= form_for Blast.new, url: blast_create_path do |f| %>
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="row"> <!--  What -->
+                    <div class="col-lg-12">
+                        <div class="ibox ">
+                            <div class="ibox-title">
+                                <h5>What to send?</h5>
+                            </div>
+                            <!-- Message -->
+                            <div class="ibox-content">
+                                    <!-- Keyword -->
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <p>Which Keyword?</p>
+                                            <small>Please note: keywords are included in the character count, plus one space.</small>
+                                            <%= select_tag("keyword", options_for_select(@org_keywords.map { |m| [m.name, m.name]}), prompt: "Choose a Keyword", class: "form-control m-b", id: "keyword", required: true) %>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <!-- Message -->
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <p>
+                                            What Message?
+                                            </p>
+                                            <small>
+                                            Messages can now be up to 1,000 standard characters (special characters charged accordingly). Please see rate of message while writing blast.
+                                            </small>
+                                            <%= text_area_tag("message", params[:message] ? params[:message] : nil, class: "form-control", id: "message",  maxlength: @max_message_length, placeholder:"Your Message", required: true) %>
+
+                                            <p> Maximum Characters Remaining: <span id="counter" data-maximum-length=<%= @max_message_length %>><%= @max_message_length %></span> </p>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <!-- Media -->
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <p>What media do you want to send?</p>
+                                            <!-- Immediate Send -->
+                                            <div class="custom-file">
+                                                <%= f.file_field "media_attachments", class: "custom-file-input", id: "mms", data: { max_file_size: 1.megabytes }, accept: 'image/png,image/gif,image/jpeg,image/jpg' %>
+                                                <label for="logo" class="custom-file-label">Choose file...</label>
+                                            </div>
+                                            <small>Limit 1MB</small><br />
+                                            <button id="clear-attachment" class="btn" type="button" style="float:right" onclick="clearAttachment()">Remove Attachment</button>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div class="col-md-12" id="credit_notification" style="display: none;">
+                                        <div class="alert alert-success text-center">
+                                            <strong id="credit_message">This is an advanced message and will require x2 the credits.</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row"> <!-- Who -->
+                    <div class="col-lg-12">
+                        <div class="ibox ">
+                            <div class="ibox-title">
+                                <h5>Who to send to?</h5>
+                                <div class="ibox-tools">
+                                    <%= check_box_tag "contacts_all", "false", false, id: "contact_all", checked: false, onclick: "disableContacts();" %> Include All Contacts
+                                </div>
+                            </div>
+                            <div class="ibox-content" id="specific-contacts">
+                                <!-- Groups -->
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <p>
+                                        Which Groups?
+                                        </p>
+                                        <%= select_tag("groups[]", options_for_select(@org_groups.map { |m| [m.name.titleize, m.id]}, params[:groups]), class: "select_groups form-control", data: { placeholder:"Begin Typing or Select Groups..."}, tabindex: "4", multiple: true, id: "group",) %>
+
+                                    </div>
+                                </div>
+                                <br />
+                                <!-- Contacts -->
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <p>
+                                        Which Contacts?
+                                        </p>
+                                        <%# <select class="select_contacts form-control"></select> %>
+                                        <%= select_tag("contact_ids[]", nil, class: "select_contacts form-control", data: { placeholder:"Begin Typing or Select Contacts..."}, tabindex: "4", multiple: true, id: "select_contacts",) %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row"> <!--  When To Send -->
+                    <div class="col-lg-12">
+                        <div class="ibox ">
+                            <div class="ibox-title">
+                                <h5>When do you want to send the blast?</h5>
+                            </div>
+                            <div class="ibox-content">
+                                <div class="checkbox checkbox-success">
+                                    <%= check_box_tag "immediate_send", "false", true, onchange: "hideCalendar()", id: "immediate_send" %>
+                                    <label for="immediate_send"> Send Immediately</label>
+                                </div>
+                                <div class="row" id="calendar" style="display: none;">
+                                    <!-- Calendar Date -->
+                                    <div class="col-md-6">
+                                        <p>What Date?</p>
+                                        <div class="input-group date">
+                                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span><%= text_field_tag("date", @current_date.strftime("%m/%d/%Y"), class: "form-control", id: "date") %>
+                                        </div>
+                                    </div>
+                                    <!-- Calendar Time -->
+                                    <div class="col-md-6">
+                                        <p>What Time?</p>
+                                        <div class="input-group clockpicker" data-autoclose="true">
+                                            <%= text_field_tag "time", @current_date.strftime("%l:%M %P %Z"), class: "form-control", id: "time" %>
+                                            <span class="input-group-addon">
+                                                <span class="fa fa-clock-o"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 text-center">
+                                        <small>Blasts Are Scheduled In <%= @current_organization.timezone %></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="col-lg-12">
+                        <div class="ibox ">
+                            <div class="ibox-title">
+                                <h5>Should this blast repeat?</h5>
+                            </div>
+                            <div class="ibox-content">
+                                <div class="row">
+                                    <!-- Repeat Occurance -->
+                                    <div class="col-md-6">
+                                        <p>How often?</p>
+                                        <%= select_tag("repeat", options_for_select(["Daily",  "Weekly", "Monthly"]), class: "form-control m-b", prompt: "No Repeating", id: "repeat", tabindex: "4", multiple: false) %>
+                                    </div>
+                                    <!-- Repeat End Date -->
+                                    <div class="col-md-6">
+                                        <p>When to end repeat?</p>
+                                        <div class="input-group date">
+                                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span><%= text_field_tag("end_repeat_date", nil, class: "form-control") %>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 text-center">
+                                        <small>Recurring messages can only occur for up to six months.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <br />
+
+
+            </div>
+            <div class="col-lg-4">
+                <div class="row"> <!--  Submit -->
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <div id="overview">
+                                    <div class="m-b-lg">
+                                        <h2>Ready To Send?</h2>
+                                        <hr />
+                                        <small><strong>Message Preview</strong></small>
+                                        <div class="talk-bubble talk-bubble-round" id="image_preview_container" style="display: none;">
+                                            <div class="talktext">
+                                                <%# <p id="message_preview"></p> %>
+                                                <img id="image_preview" src="#" alt="your image" />
+                                            </div>
+                                        </div>
+                                        <div class="talk-bubble talk-bubble-round">
+                                            <div class="talktext" id="message_preview">
+                                                <p id="message_preview"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="client-detail">
+                                        <div>
+
+                                            <strong>Message Stats</strong>
+
+                                            <ul class="list-group clear-list">
+                                                <li class="list-group-item fist-item">
+                                                    <span class="float-right">
+                                                        <span class="label label-primary" id="total-contacts"></span>
+                                                    </span>
+                                                    Total Contacts
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <span class="float-right">
+                                                        <span title="Rates automatically calculate your message credits based on the number of characters in your content." class="label label-warning selector" id="rating" style="cursor: help"></span>
+                                                    </span>
+                                                    Message Rate
+                                                </li>
+                                            </ul>
+                                            <br />
+                                            <span class="text-center">
+                                                <h1 id="msg_counter" remote="true"><%= @msg_count %></h1>
+                                            </span>
+                                            <br />
+                                            <div class="widget lazur-bg p-xl text-center">
+                                                <div class="m-b-md">
+
+                                                    <div class="checkbox checkbox-success">
+                                                        <input type="checkbox" id="submit_checkbox" value="confirmed" onchange="hideSubmit()" onload="setSubmit()">
+                                                        <label for="submit_checkbox"> I agree to the limitations and services of Mobilize Comms. I hereby recognize that I am responsible for all compliancies with the FCC.</label>
+                                                    </div>
+                                                    <div class="row" id="submit" >
+                                                        <div class="col-md-12">
+                                                            <%= f.submit("Send Blast", class:"btn btn-block btn-orange", id: "submit_button") %>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+            </div>
+            <br />
+        </div>
+
+    <% end %>
+
+</div>
+
+<% content_for :javascript do %>
+
+    <script type="text/javascript">
+
+        // Updates The Preview Message
+        function message_preview() {
+            var preview_element = document.getElementById("message_preview");
+
+            var keyword_text = document.getElementById("keyword").value;
+
+            var message_text = document.getElementById("message").value;
+
+            var preview_text = [keyword_text.toUpperCase(), message_text].join(" ")
+
+            preview_element.innerHTML = preview_text
+        }
+
+        // Sets The Count Of Text In The Message
+        function updateMessageMax() {
+            console.log(`Message Details`)
+
+            var keyword_text = $("#keyword");
+            var review_text = $("#message");
+            var new_message_max = <%= @max_message_length %>;
+            var counter     = $("#counter");
+
+            if (keyword_text[0].value.length > 0) {
+                new_message_max = new_message_max - (keyword_text[0].value.length + 1) - review_text[0].value.length
+            }else{
+                new_message_max = new_message_max - review_text[0].value.length
+            }
+
+            var message = new SmsTools.Message(review_text[0].value)
+            console.log(`Encoding ${message.encoding}`)
+
+            counter.text(new_message_max);
+
+        };
+
+        function messageCreditAmount(credit) {
+            console.log(`Message Credit Amount ${credit}`);
+            var credit_notification =  document.getElementById("credit_notification");
+            if (credit == 1) {
+                console.log(`Hiding Credit Notification`);
+                credit_notification.style.display = "none";
+            } else {
+                credit_notification.style.display = "block";
+                var message = `Your message has gone above the standard set of characters and will be charged at ${credit}x credits. Once you complete your message, please check the preview and credit count for your blast before sending.`
+                $("#credit_message").text(message);
+            }
+            $("#rating").text(`${credit}x`)
+        }
+
+        $( ".selector" ).tooltip({ show: { effect: "blind", duration: 800 } });
+
+        function determineCountAndCost() {
+            message_preview();
+            var mms = false;
+            if (document.getElementById("mms").value) {
+                mms = true;
+            }
+            $.ajax({
+                url: "/blast/new_review",
+                type: "GET",
+                dataType: "json",
+                data: {
+                    "groups_js" : $("#group").val(),
+                    "contacts_js" : $("#select_contacts").val(),
+                    "contacts_all_js" : document.getElementById("contact_all").checked,
+                    "mms" : mms,
+                    "message" : $("#message")[0].value,
+                    "keyword" : $("#keyword").val()
+                },
+                error: function (xhr, status, error) {
+                    console.error(`AJAX Error: ${error}`);
+                },
+                success: function (response) {
+                    messageCreditAmount(response["sms_check"]);
+
+                    $("#msg_counter").text(`\$${response["msg_count"].toFixed(2)}`);
+
+                    if (response["contact_count"] > 0) {
+                        $("#total-contacts").text(response["contact_count"]);
+                    }else{
+                        $("#total-contacts").text(0);
+                    }
+
+                    console.log(response);
+                }
+            });
+        };
+
+        // Hides The Calendar View For Scheduled Blasts When Immediate Send Is Selected
+        function hideCalendar() {
+            var cal =  document.getElementById("calendar")
+
+            if (cal.style.display == "none") {
+                cal.style.display = "flex";
+            }else{
+                cal.style.display = "none";
+            }
+        };
+
+        // Disables User Access To Select Groups & Select Contacts When All Contacts Are Selected
+        function disableContacts() {
+            var group_field = document.getElementById("group");
+            var contact_field = document.getElementById("select_contacts");
+
+            if (group_field.disabled) {
+                group_field.disabled = false;
+                contact_field.disabled = false;
+            }else{
+                group_field.disabled = true;
+                contact_field.disabled = true;
+            }
+        };
+
+        function show_storage() {
+            var i;
+            console.log("local storage");
+            for (i = 0; i < localStorage.length; i++)   {
+                console.log(localStorage.key(i) + "=[" + localStorage.getItem(localStorage.key(i)) + "]");
+            }
+        };
+
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                $('#image_preview').attr('src', e.target.result);
+                }
+
+                reader.readAsDataURL(input.files[0]); // convert to base64 string
+            }
+        }
+
+        function clearAttachment() {
+            $('#mms').val('');
+            $('.custom-file-label').html('');
+            determineCountAndCost();
+        }
+
+        // Other General Items
+        $(function() {
+
+            // Methods To Be Executed On Load
+            page_set_storage("BlastNew");
+
+            show_storage();
+
+            updateMessageMax();
+
+            console.log(`Customer File Input Value: ${$('.custom-file-input').value}`)
+
+            if ($('.custom-file-input').value != null)  {
+                document.getElementById('image_preview_container').style.display = "block";
+                let fileName = $('.custom-file-input').val().split('\\').pop();
+                $('.custom-file-input').next('.custom-file-label').addClass("selected").html(fileName);
+                readURL(this);
+                console.log("Custom File Input")
+            }else{
+                console.log("NOT Custom File Input")
+                document.getElementById("mms").value = null;
+            };
+
+            determineCountAndCost();
+
+            // Methods Assigned With Actions
+
+            $('.custom-file-input').on('change', function() {
+                const size =  (this.files[0].size / 1024 / 1024).toFixed(2);
+                console.log(`-----------> SIZE: ${size}`)
+                if (size > 1) {
+                    //alert("File must be 1MB or smaller.");
+                    swal({
+                        title: "File Too Large",
+                        text: "Your image must be 1MB or smaller.",
+                    });
+
+                }else{
+                    document.getElementById('image_preview_container').style.display = "block";
+                    let fileName = $(this).val().split('\\').pop();
+                    $(this).next('.custom-file-label').addClass("selected").html(fileName);
+                    readURL(this);
+                    determineCountAndCost();
+                }
+            });
+
+            let fileName = $(".custom-file-input").val().split('\\').pop();
+            $(".custom-file-input").next('.custom-file-label').addClass("selected").html(fileName);
+
+            $('#submit_button').click(function() {
+                $(this).disabled = true;
+            });
+
+            document.getElementById("new_blast").onkeypress = function(e) {
+                var key = e.charCode || e.keyCode || 0;
+                if (key == 13) {
+                    e.preventDefault();
+                }
+            }
+
+            $('.select_contacts').select2({
+                allowClear: true,
+                ajax: {
+                    url: '/blast/get_contacts',
+                    delay: 250,
+                    data: function (params) {
+                        console.log(params)
+
+                        var query = {
+                            search: params.term,
+                            page: params.page || 1
+                        }
+
+                        // Query parameters will be ?search=[term]&page=[page]
+                        return query;
+                    },
+                    processResults: function(data, params) {
+                        console.log(`DATA: ${data.pagination}\nPARAMS: ${params}`);
+                        console.log(params)
+                        params.page = params.page || 1;
+
+                        return {
+
+                            results: $.map(data.contacts, function(value, index){
+                                const text = [value.cell_phone, value.first_name, value.last_name]
+                                    .filter(v => !!v)
+                                    .join(" ")
+
+                                return {id: value.id, text: text};
+                            }),
+                            pagination: {
+                                more: (params.page * 10) < data.count_filtered
+                            }
+                        }
+                    },
+                    cache: true
+                }
+            });
+
+            $(".select_groups").select2({
+                allowClear: true
+            });
+
+            if  (document.getElementById("contact_all")) {
+                document.getElementById("contact_all").onchange = function() {disableContacts()};
+            }
+
+            if  (document.getElementById("immediate_send")) {
+                document.getElementById("immediate_send").onchange = function() {hideCalendar()};
+            }
+
+            // Sets Groups Values On Changes
+            $("#group").change(function(){
+                determineCountAndCost();
+            });
+
+             $("#keyword").change(function(){
+                determineCountAndCost();
+            });
+
+            $("#select_contacts").change(function(){
+                determineCountAndCost();
+            });
+
+            // Sets Contact All
+            $("#contact_all").change(function(){
+                disableContacts();
+                determineCountAndCost();
+            });
+
+            // Submit Button Show & Hide Logic
+            var sub =  document.getElementById("submit")
+            document.getElementById("submit_checkbox").onchange = function() {
+
+                hideSubmit()
+            };
+
+            document.getElementById("submit_checkbox").onload = function() {setSubmit()};
+
+            function hideSubmit() {
+                determineCountAndCost()
+                if (sub.style.display == "none") {
+                    sub.style.display = "flex";
+                }else{
+                    sub.style.display = "none";
+                }
+            }
+
+            // Automatically hide the submit button if the box is not checked for the terms agreement
+            var checked = document.getElementById("submit_checkbox").checked
+            if (checked == true) {
+                sub.style.display = "flex";
+            }else{
+                sub.style.display = "none";
+            }
+
+            var new_message_max = <%= @max_message_length %>;
+            var keyword_text = $("#keyword");
+            document.getElementById("keyword").onchange = function() {
+                message_preview();
+                updateMessageMax();
+            };
+            var review_text = $("#message");
+            var counter     = $("#counter");
+
+            review_text.keyup(function() {
+                var keyword_length = keyword_text[0].value.length;
+                if (keyword_length > 0 ) {
+                    keyword_length = keyword_length + 1
+                }
+                var remaining = <%= @max_message_length %> - keyword_length - $(this).val().length
+                counter.text(remaining);
+                if (remaining <= 840) {
+                    if (remaining <= 0) {
+                        review_text.css("color", "red");
+                    }else{
+                        review_text.css("color", "orange");
+                    }
+                }
+
+                determineCountAndCost();
+
+            });
+
+            const elem = document.getElementById('message');
+
+            elem.addEventListener('paste', (event) => {
+                var keyword_length = keyword_text[0].value.length;
+                if (keyword_length > 0 ) {
+                    keyword_length = keyword_length + 1
+                }
+                var remaining = <%= @max_message_length %> - keyword_length - $(this).val().length
+                counter.text(remaining);
+                if (remaining <= 100) {
+                    if (remaining <= 10) {
+                        review_text.css("color", "red");
+                    }else{
+                        review_text.css("color", "orange");
+                    }
+                }
+
+                determineCountAndCost();
+
+            });
+
+            $('.clockpicker').clockpicker();
+
+            $('input[name="daterange"]').daterangepicker();
+
+            $('.input-group.date').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true
+            });
+
+            $( ".selector" ).tooltip({
+                show: {
+                    effect: "blind"
+                }
+            });
+
+        });
+
+    </script>
+<% end %>

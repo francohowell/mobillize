@@ -1,0 +1,130 @@
+<%= stylesheet_link_tag "forms" %>
+
+<%= javascript_include_tag "forms" %>
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-4">
+        <h2><%= @organization.name %></h2>
+        <ol class="breadcrumb">
+
+            <li class="breadcrumb-item">
+                <a href="<%= url_for :controller => 'organization', :action => 'show' %>">Organization</a>
+            </li>
+            <li class="breadcrumb-item active">
+                <strong>New Admin</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row justify-content-md-center">
+        <div class="col-lg-8">
+            <div class="ibox ">
+                <div class="ibox-title text-center">
+                    <h5>Create New Admin</h5>
+                </div>
+                <div class="ibox-content">
+                    <%= form_for @new_user, url: {action: "create_admin", controller: "organization"} do |f| %>
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">First Name</label>
+                            <div class="col-lg-10"><%= f.text_field :first_name, placeholder: "Admin First Name", class: "form-control"%> 
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">Last Name</label>
+                            <div class="col-lg-10"><%= f.text_field :last_name, placeholder: "Admin Last Name", class: "form-control"%> 
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">Email</label>
+                            <div class="col-lg-10"><%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "Admin Email", class: "form-control" %></div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">New Password</label>
+                            <div class="col-lg-10">
+                              <%= f.password_field :password, placeholder: "Password", autocomplete: "new-password", class: "form-control" %>
+                              <% if @minimum_password_length %>
+                                <br />
+                                <em><%= @minimum_password_length %> characters minimum</em>
+                              <% end %>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">Confirm New Password</label>
+                            <div class="col-lg-10">
+                              <%= f.password_field :password_confirmation, placeholder: "Confirm Password", autocomplete: "new-password", class: "form-control" %> 
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">Cell Phone</label>
+                            <div class="col-lg-10"><%= f.text_field :cell_phone, placeholder: "Admin Cell Phone", class: "form-control"%> 
+                            </div>
+                        </div>
+
+                        <div class="form-group row justify-content-md-center">
+                            <%= f.submit class: "btn btn-primary" do %><i class="fa fa-check"></i>&nbsp;Update<% end %>
+
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<% content_for :javascript do %>
+
+<script type="text/javascript">
+
+$(function() {
+
+    page_set_storage("OrganizationEdit");
+   
+    $('.chosen-select').chosen({width: "100%"});
+
+    <% if !@organization.logo.url %>
+        $('#img_prev').css('visibility', 'hidden');
+    <% end %>
+
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            $('#img_prev').attr('src', e.target.result);
+        }
+        reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    $("#org_logo_upload").change(function(){
+        $('#img_prev').css('visibility', 'visible');
+        readURL(this);
+    });
+
+});
+
+</script>
+
+<% end %>
+
+

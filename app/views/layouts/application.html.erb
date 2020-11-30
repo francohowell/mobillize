@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Mobilize Comms | Ditch the email</title>
+    <%= favicon_link_tag asset_path('Mobilize_Logo_Favicon.png') %>
+
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <!-- Include style per-controller - vendor plugins -->
+    <%= stylesheet_link_tag params[:controller] if stylesheet_exists?(params[:controller]) %>
+
+    <!-- Main css styles -->
+    <%= stylesheet_link_tag    'application', media: 'all' %>
+
+    <!-- Main javascript files -->
+    <%= javascript_include_tag 'application'  %>
+
+</head>
+<body>
+
+
+<!-- Skin configuration box -->
+<!-- <%= render 'layouts/skinconfig' %> -->
+
+    <!-- Wrapper-->
+    <div id="wrapper" class="<%= params[:controller] %>.<%= params[:action] %>">
+
+        <!-- Navigation -->
+        <%= render 'layouts/navigation' %>
+          <% if @terms_need_displayed || (!@unaccepted_notifications.nil? && !@unaccepted_notifications.empty?) %>
+          <script>
+              $(function () {
+                  <% if @terms_need_displayed %>
+                    termsAlert()
+                  <% end %>
+
+                  <% if !@unaccepted_notifications.empty? && !@terms_need_displayed %>
+                    notificationAlert(0)
+                  <% end %>
+
+
+                  // Terms & Conditions Alerts
+
+                  function termsAlert () {
+                      var myhtml = document.createElement("div");
+                      myhtml.innerHTML = 'Please accept our new terms of service. \nYou can find them <%= link_to "here", terms_conditions_path %>';
+                      swal({
+                          html: true,
+                          title: "New Terms of Service",
+                          text: 'Please accept our new terms of service. </br> You can find them <%= link_to "here", terms_conditions_path, target: "_blank" %>',
+                          type: "warning",
+                          showCancelButton: false,
+                          confirmButtonColor: "#DD6B55",
+                          confirmButtonText: "Yes, I Accept",
+                          closeOnConfirm: true,
+                          closeOnCancel: false
+                      }, function () {
+                          $.ajax({
+                              url: `/update_term`,
+                              type: 'POST',
+                              data: { authenticity_token: $('[name="csrf-token"]')[0].content},
+                              success: function (result) {
+                                <% if !@unaccepted_notifications.empty? %>
+                                  notificationAlert(0)
+                                <% end %>
+                              }
+                          })
+                      });
+                  }
+
+                  // Notifications Alert
+
+                  function notificationAlert (count) {
+                      var userNotifications = <%= @unaccepted_notifications.to_json.html_safe %>;
+                      swal({
+                        title: userNotifications[count].title,
+                        text: userNotifications[count].description,
+                        showCancelButton: false,
+                        confirmButtonColor: "#3AC1CC",
+                        confirmButtonText: "Okay",
+                        closeOnConfirm: true
+                      }, function () {
+                        $.ajax({
+                          url: `/update_notification?user_notification=${userNotifications[count].id}`,
+                          type: 'POST',
+                          data: { authenticity_token: $('[name="csrf-token"]')[0].content},
+                          success: function (result) {
+                            if (count + 1 !== userNotifications.length) {
+                              count++
+                              notificationAlert(count);
+                            }
+                          }
+                        });
+                      });
+                  };
+              });
+          </script>
+          <% end %>
+
+        <!-- Page wrapper -->
+        <div id="page-wrapper" class="gray-bg <%= @extra_class %>">
+
+            <!-- Page wrapper -->
+            <%= render 'layouts/topnavbar' %>
+
+            <!-- Main view  -->
+            <%= yield %>
+
+            <!-- Footer -->
+            <%= render 'layouts/footer' %>
+
+        </div>
+        <!-- End page wrapper-->
+
+        <!-- Right sidebar -->
+        <%= render 'layouts/rightsidebar' %>
+
+    </div>
+    <!-- End wrapper-->
+
+    <!-- Include javascript per-controller - vendor plugins -->
+    <%= javascript_include_tag params[:controller] if javascript_exists?(params[:controller]) %>
+
+    <!-- Include javascript per-view -->
+    <!-- For demo purpose we include javascript in view but you can easily start SeedProject and organize it with Rails asset pipeline as you want -->
+    <%= yield :javascript %>
+
+</body>
+</html>

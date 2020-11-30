@@ -1,0 +1,180 @@
+<div class="wrapper wrapper-content animated fadeInRight" id="loadingarea">
+    <div class="sk-spinner sk-spinner-wave">
+        <div class="sk-rect1"></div>
+        <div class="sk-rect2"></div>
+        <div class="sk-rect3"></div>
+        <div class="sk-rect4"></div>
+        <div class="sk-rect5"></div>
+    </div>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="contact-box center-version">
+
+                <%= form_tag(admin_page_usage_report_path, method: :post, id: "usagereport") do |f| %>
+                    <div class="m-md text-center">
+
+                        <h3 class="m-b-xs"><strong>Customer Usage</strong></h3>
+                        <hr />
+                        <div class="font-bold">Monthly</div>
+                        <p class="m-t-md">
+                            This report will provide you with the monthly usage report for customers. It includes the number of messages sent, the number of messages received, the number of keywords used, plan details, subscription details, and contact information.
+                        </p>
+
+                        <div>
+                            <%= select_tag :month, options_for_select(Date::MONTHNAMES, @month), class: "form-control chosen-select", prompt: "Select Month"%>
+                            
+                            <br />
+
+                            <%= select_tag :year, options_for_select([2018,2019,2020,2021,2022], @year.to_i), class: "form-control chosen-select"%>  
+                            
+                        </div>
+                    
+                    </div>
+
+                    <div class="contact-box-footer">
+                        <div class="m-t-xs btn-group">
+                            <%= submit_tag "Download CSV", class: "btn btn-xs btn-primary", data: { disable_with: false }, id: "usageid" %>
+                        </div>
+                    </div>
+                    
+                <% end %>
+
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="contact-box center-version">
+
+                <%= form_tag(admin_page_customer_usage_report_path, method: :post, id: "usagereport" ) do |f| %>
+                    <div class="m-md text-center">
+
+                        <h3 class="m-b-xs"><strong>Individual Customer Usage</strong></h3>
+                        <hr />
+                        <div class="font-bold">Monthly</div>
+                        <p class="m-t-md">
+                            This report will provide you with the monthly usage report for a particular customer. It includes the number of messages sent, the number of messages received, the number of keywords used, plan details, subscription details, and contact information.
+                        </p>
+
+                        <div>
+                            <%= select_tag :organization_id, options_for_select(@organization_select, :id), class: "form-control chosen-select", prompt: "Select Organization", required: true %>
+                            
+                            <br />
+
+                            <%= select_tag :month, options_for_select(Date::MONTHNAMES, @month), class: "form-control chosen-select", prompt: "Select Month", required: true %>
+                            
+                            <br />
+
+                            <%= select_tag :year, options_for_select([2018,2019,2020,2021,2022], @year.to_i), class: "form-control chosen-select", required: true %>  
+                            
+                        </div>
+                    
+                    </div>
+
+                    <div class="contact-box-footer">
+                        <div class="m-t-xs btn-group">
+                            <%= submit_tag "Download CSV", class: "btn btn-xs btn-primary", data: { disable_with: false } %>
+                        </div>
+                    </div>
+                    
+                <% end %>
+
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="contact-box center-version">
+
+                <%= form_tag(admin_page_customer_blast_report_path, method: :post, id: "usagereport" ) do |f| %>
+                    <div class="m-md text-center">
+
+                        <h3 class="m-b-xs"><strong>Individual Customer Blasts</strong></h3>
+                        <hr />
+                        <div class="font-bold">Monthly</div>
+                        <p class="m-t-md">
+                            This report will provide you with the monthly blast report for a particular customer. It includes the blast details and when they occured.
+                        </p>
+
+                        <div>
+                            <%= select_tag :organization_id, options_for_select(@organization_select, :id), class: "form-control chosen-select", prompt: "Select Organization", required: true %>
+                            
+                            <br />
+
+                            <%= select_tag :month, options_for_select(Date::MONTHNAMES, @month), class: "form-control chosen-select", prompt: "Select Month", required: true %>
+                            
+                            <br />
+
+                            <%= select_tag :year, options_for_select([2018,2019,2020,2021,2022], @year.to_i), class: "form-control chosen-select", required: true, data: { disable_with: false } %>  
+                            
+                        </div>
+                    
+                    </div>
+
+                    <div class="contact-box-footer">
+                        <div class="m-t-xs btn-group">
+                            <%= submit_tag "Download CSV", class: "btn btn-xs btn-primary", data: { disable_with: false } %>
+                        </div>
+                    </div>
+                    
+                <% end %>
+
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="contact-box center-version">
+
+                <%= form_tag(admin_page_new_account_report_path, method: :post, id: "usagereport" ) do |f| %>
+                    <div class="m-md text-center">
+
+                        <h3 class="m-b-xs"><strong>New Accounts</strong></h3>
+                        <hr />
+                        <div class="font-bold">Monthly</div>
+                        <p class="m-t-md">
+                            This report will provide you with the monthly overview of new accounts that have confirmed their emails.
+                        </p>
+
+                        <div>
+
+                            <%= select_tag :month, options_for_select(Date::MONTHNAMES, @month), class: "form-control chosen-select", prompt: "Select Month", required: true %>
+                            
+                            <br />
+
+                            <%= select_tag :year, options_for_select([2018,2019,2020,2021,2022], @year.to_i), class: "form-control chosen-select", required: true %>  
+                            
+                        </div>
+                    
+                    </div>
+
+                    <div class="contact-box-footer">
+                        <div class="m-t-xs btn-group">
+                            <%= submit_tag "Download CSV", class: "btn btn-xs btn-primary", data: { disable_with: false } %>
+                        </div>
+                    </div>
+                    
+                <% end %>
+
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<br />
+
+<% content_for :javascript do %>
+
+    <script type="text/javascript"> 
+
+        function loadingArea() {
+            $('#loadingarea').toggleClass('sk-loading');
+        };
+
+        $(function() {
+            $("#usageid").click(function() {
+
+            });
+        });
+
+
+    </script>
+
+<% end %>

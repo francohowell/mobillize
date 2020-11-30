@@ -1,0 +1,78 @@
+<!-- Bread Crumb -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-4">
+        <h2>Failed Contact Upload</h2>
+         <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="<%= url_for :controller => 'contacts', :action => 'new' %>">Add Contacts</a>
+            </li>
+            <li class="breadcrumb-item active">
+                <strong>Contacts From <%= @cu.file.identifier %></strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+<!-- Alert Management -->
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <h2>Contact Failures of <%= @cu.file.identifier %></h2>
+                    <div class="float-right">
+                        <%= link_to "Contacts Overview", contacts_overview_path, class: "btn btn-primary" %>
+                    </div>
+                    <div class="project-list">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <td>Cell Phone</td>
+                                    <td>First Name</td>
+                                    <td>Last Name</td>
+                                    <td>Errors</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% r = 1 %>
+                                <% @csv.each do |row| %>
+                                    <% if @failures["#{r}"] %>
+                                        <tr>
+                                            <td> <%=  number_to_phone(row[0]) %></td>
+                                            <td> <%= row[1] %></td>
+                                            <td> <%= row[2] %></td>
+                                            <td><span class="badge badge-danger"><%= @failures["#{r}"] %></span></td>
+                                        </tr>
+                                    <% end %>
+                                    <% r += 1 %>
+                                <% end %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<% content_for :javascript do %>
+    <script type="text/javascript">
+        page_set_storage("UploadFailure");
+    </script>
+<% end %>
+   
+   
