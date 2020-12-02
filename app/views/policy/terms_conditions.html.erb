@@ -1,0 +1,29 @@
+<div class="middle-box text-center loginscreen animated fadeInDown">
+    <div>
+        <div>
+            <%= link_to root_path do %>
+                <%= image_tag "logos/Mobilize_Logo_Comms_Special Aqua.png", size: "200x200", alt: "MUS Logo Blue" %>
+            <% end %>
+        </div>
+    </div>
+</div>
+<div class="wrapper wrapper-content  animated fadeInRight article">
+    <div class="row justify-content-md-center">
+        <div class="col-lg-10">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="text-center article-title">
+                        <span class="text-muted"><i class="fa fa-clock-o"></i> <%= @term.publication_date.strftime("%B %d %Y") %></span>
+                        <h1>
+                            <%= @term.title.titleize %>
+                        </h1>
+                    </div>
+                    <hr/>
+                    <p>
+                        <%= @term.content.html_safe %>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,90 @@
+<div class="middle-box text-center loginscreen animated fadeInDown">
+    <div>          
+        <% if @kw %>
+            <div>
+                <% if !@kw.organization.logo.file.nil? %>
+                    <img alt="<%="#{@kw.organization.name} Logo"%>" class="img-md" src="<%= image_path(@kw.organization.logo.thumb) %>"/>
+                <% else %>
+                    <%= image_tag "logos/Mobilize_Logo_Comms_Special Aqua.png", size: "200x200", alt: "MUS Logo Blue" %>
+                <% end %>
+            </div>
+            <h3><%= @kw.organization.name %> Welcomes You To The <%= @kw.name %> Text Channel!</h3>
+            
+            <p><%= @kw.invitation_text %></p>
+
+            <%= form_tag(keyword_optin_create_path, method: "post") do %>
+                
+                <div class="row justify-content-md-center">
+                    <% flash.each do |key, value| %>
+                        <% if key == "success" || key == "notice" %>
+                            <div class="col-lg-7 alert alert-dismissable alert-success">
+                            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                        <% else %>
+                            <div class="col-lg-7 alert alert-dismissable alert-danger">
+                            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                        <% end %>
+                            <%= value %>
+                        </div>
+                    <% end %>
+                </div>
+
+                <div class="form-group">
+                    <%= text_field_tag :first_name, nil, class: "form-control", placeholder: "First Name*", required: true  %>
+                </div>
+
+                <div class="form-group">
+                    <%= text_field_tag :last_name, nil, class: "form-control", placeholder: "Last Name*", required: true  %>
+                </div>
+
+                <div class="form-group">
+                    <%= text_field_tag :cell_phone, nil, class: "form-control", placeholder: "Cell Phone*", required: true  %>
+                </div>
+
+                <div class="form-group">
+                    <%= text_field_tag :primary_email, nil, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "Email"%>
+                </div>
+
+                <div class="form-group">
+                    <%= text_field_tag :secondary_email, nil, autofocus: true, class: "form-control", placeholder: "Secondary Email "%>
+                </div>
+
+                <div class="form-group">
+                    <%= text_field_tag :company_name, nil, class: "form-control", placeholder: "Company Name" %>
+                </div>
+
+                <%= hidden_field_tag :id, @kw.id %>
+
+                <div class="form-group">
+                    <p>You may receive up to 5msgs/week.</p>
+                    <p>Message and data rates may apply.</p>
+                    <p>Reply STOP to end or HELP for help.</p> 
+                </div>
+
+                <div class="form-group row text-center">
+                    <div class="col-lg col-lg-12">
+                        <%= submit_tag "Join", class: "btn btn-block btn-primary"%>
+                    </div>
+                </div>
+            
+            <% end %> 
+        <% else %>
+            <div>
+                 <%= image_tag "logos/Mobilize_Logo_Comms_Special Aqua.png", size: "200x200", alt: "MUS Logo Blue" %>
+            </div>
+            <br />
+            <h3>We could not find the keyword that you are wanting to join. Please check your link or email us at <%= link_to "support@mobilizecomms.com", "mailto:support@mobilzieus.com" %> for additional support.</h3>
+        <% end %>
+        <div class="text-center">
+            <small>Mobilize Comms & Blueprint 108 &copy; 2019-2020</small>
+            <small>Mobilize Comms is a no-spam platform.</small> 
+            <small>Please see our <%= link_to "Privacy Policy", privacy_policy_path, target: "_blank" %>, <%= link_to "Terms Of Use", terms_conditions_path, target: "_blank" %> and <%= link_to "Anti-Spam policy", spam_policy_path, target: "_blank" %> BY CLICKING THE LINKS.<br />To unsubscribe from any Mobilize Comms list send STOP in a message to 94502 or contact Support. WE DO NOT USE OR provide lists of phone numbers EVER.</small>
+        </div>
+    </div>
+</div>
+
+<% content_for :javascript do %>
+    <script type="text/javascript">
+        page_set_storage("ContactOptIn");
+    </script>
+<% end %>
+   

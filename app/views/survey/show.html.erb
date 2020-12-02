@@ -1,0 +1,251 @@
+<%= stylesheet_link_tag "forms" %>
+<%= javascript_include_tag "forms" %>
+<%= javascript_include_tag "https://maps.googleapis.com/maps/api/js?libraries=places&key=#{Rails.application.credentials[:google_api_server_key]}" %>
+
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row justify-content-md-center">
+        <div class="col-lg-8">
+            <div class="ibox">
+                <div class="ibox-content text-center">
+                    <% if @survey %>
+                        <h1><%= @survey.name %></h1>
+                    <% else %>
+                        <h1>Could not find survey.</h1>
+                    <% end %>
+                    <small>Powered by: Mobilize Comms</small>
+                    <hr />
+                    <br />
+                    <% if !@survey&.is_active? %>
+                        <% if @contact_id != "0" %>
+                            <h5>This survey is no longer active. Please opt-in to the keyword again to get the most recent survey.</h5>
+                        <% else %>
+                            <h5>This survey is no longer active. Please change your survey dates in order to edit this survey.</h5>
+                        <% end %>
+                    <% elsif @survey %>
+                        <h5><%= @survey.start_message %></h5>
+                    <% else %>
+                        <h5>We are sorry, however we could not find the survey you are looking for. Please contact the organization of the survey for further details.</h5>
+                    <% end %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<style>
+    .flexbox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    .actions {
+        text-align: center;
+        margin-top: 20px;
+    }
+    }
+</style>
+
+<% if @survey&.is_active? %>
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row justify-content-md-center">
+            <!-- Questions -->
+            <% question_number = 0%>
+            <%= form_with url: {action: "submit", controller: "survey"}, class: "col-lg-8", local: true do |f| %>
+                <% for question in @questions %>
+                    <% question_number += 1%>
+                    <div class="col-lg-12">
+                        <div class="ibox ">
+                            <div class="ibox-title">
+                                <h5>Question <%= question_number %> <small><%= question.required ? "(required)" : "" %></small></h5>
+                            </div>
+                            <div class="ibox-content">
+                                <div class="row">
+                                    <label class="col-lg-12 col-form-label">
+                                        <p><%= question.question.html_safe %></p>
+                                    </label>
+                                    <div class="col-lg-12">
+                                        <p><%= question.detail.html_safe %></p>
+                                    </div>
+                                    <div class="col-lg-10">
+                                    <% qvalue = params["#{question.id}"] ? params["#{question.id}"] :  @survey.preload ? question.find_answer(@contact_id) : nil %>
+                                    <% question_required = question.required && question.validation_array.empty? %>
+                                    <% if question.is_text? %>
+                                        <!-- Text Field Response -->
+                                        <%= text_field_tag question.id, qvalue, placeholder: "Please Type In Your Answer Here", required: question_required, id: question.id, class: "form-control" %>
+                                    <% elsif question.is_number? %>
+                                        <!-- Number Field Response -->
+                                        <%= number_field_tag question.id, qvalue, min: question.min_range, max: question.max_range, placeholder: "Please Type In Your Number Here", required: question_required, id: question.id, class: "form-control quantity" %>
+                                    <% elsif question.is_date? %>
+                                        <!-- DateTime Field Response -->
+                                        <div class="input-group date">
+                                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                                            <%= text_field_tag(question.id, qvalue, class: "form-control date-mask", id: question.id, placeholder: "MM/DD/YYYY") %>
+                                        </div>
+                                    <% elsif question.is_location? %>
+                                        <!-- Location Response -->
+                                        <%= text_field_tag question.id, qvalue, placeholder: "Please Type In Your Answer Here", required: question_required, id: question.id, class: "form-control pac-target-input autocomplete_address" %>
+                                    <% elsif question.is_yes_no? %>
+                                        <!-- Boolean Field Response -->
+                                        <%= select_tag question.id, options_for_select(['Yes', 'No'], qvalue), class: "non_other_select form-control", prompt: "Please Choose One Below", required: question_required %>
+                                    <% elsif question.is_mc? %>
+                                        <!-- Select/Multiple Choice Field Response -->
+                                        <%= select_tag question.id, options_from_collection_for_select(question.survey_multiple_choices.order(:choice_item), :id, :choice_item, qvalue), prompt: "Please Choose One Below", class: question.allow_other ? "other_select form-control" : "non_other_select form-control",  required: question_required %>
+                                    <% elsif question.is_phone_number? %>
+                                        <!-- Phone Number Field Response -->
+                                        <%= telephone_field_tag question.id, qvalue, min: 0, placeholder: "Please Type In Your Phone Number Here", required: question.required, id: question.id, class: "form-control quantity" %>
+                                    <% elsif question.is_signature? %>
+                                        <!-- Signature Response -->
+                                        <%= text_field_tag question.id, qvalue, min: 0, placeholder: "Sign Here", id: question.id, class: "form-control quantity signature-input", style: 'font-family: cursive;' %>
+                                        <%= check_box "#{question.id}-confirm", "confirm" %> <i></i> Confirm this is your digital signature.
+                                    <% elsif question.is_rating? %>
+                                        <!-- Rating Field Response -->
+                                        <div id="<%= question.id %>-range"></div>
+                                        <%= hidden_field_tag question.id,  params["#{question.id}"], id: question.id %>
+                                        <script type="text/javascript">
+                                            var default_rating = <%= @survey.preload ? question.find_answer(@contact_id) : 0 %>
+                                            $("#<%= question.id %>-range").ionRangeSlider({
+                                                min: 0,
+                                                max: 10,
+                                                from: default_rating,
+                                                type: 'single',
+                                                step: 1,
+                                                prettify: true,
+                                                hasGrid: true,
+                                                min_interval: 1,
+                                                from: <%= params["#{question.id}"].blank? ? "null" : params["#{question.id}"] %>,
+                                                onFinish: function (data) {
+                                                    // fired on pointer release
+                                                    document.getElementById("<%= question.id %>").value = data.fromNumber;
+                                                    console.log(`Range Value: ${document.getElementById("<%= question.id %>").value}`)
+                                                },
+                                                onUpdate: function (data) {
+                                                    // fired on changing slider with Update method
+                                                    document.getElementById("<%= question.id %>").value = data.fromNumber;
+                                                },
+                                                onStart: function (data) {
+                                                    console.log("Slider Start");
+                                                }
+                                            });
+                                        </script>
+                                    <% end %>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <%= hidden_field_tag :survey_id, @survey.id %>
+                    <%= hidden_field_tag "contact_id", nil, value: @contact_id %>
+                <% end %>
+
+                <!-- Submit -->
+                <div class="col-lg-12">
+                    <div class="ibox ">
+                        <div class="ibox-content text-center">
+                            <% if !@survey.submit_text.blank? %>
+                                <br />
+                                <div class="col-lg-12 over-flow-auto">
+                                    <%= @survey.submit_text.html_safe %>
+                                </div>
+                            <% else %>
+                                <h3>Submit Your Response</h3>
+                            <% end %>
+                            <br />
+                                <button class="btn btn-xl btn-primary" type="submit" id="submit"><strong><%= @survey.submit_button_text.blank? ? "Submit Response" : @survey.submit_button_text %></strong></button>
+                            <br />
+                            <br />
+                            <small>You Are Submitting Your Answers To The Account <%= @organization.name %></small>
+                        </div>
+                    </div>
+                </div>
+            <% end %>
+        </div>
+    </div>
+<% end %>
+
+
+
+<% content_for :javascript do %>
+
+
+
+<script type="text/javascript">
+
+function initializeAutocomplete(class_name) {
+    console.log("Initialize Autocomplete")
+    var element = document.getElementsByClassName('autocomplete_address')[0]
+    var autocomplete = new google.maps.places.Autocomplete(element, { types: ['address'], componentRestrictions: {country: 'us'} });
+    autocomplete.setFields(['formatted_address']);
+    autocomplete.addListener('place_changed', fillInAddress)
+}
+
+function fillInAddress() {
+    var place = this.getPlace();
+    var element = document.getElementsByClassName('autocomplete_address')[0]
+    element.value = place.formatted_address;
+}
+
+google.maps.event.addDomListener(window, 'load', function() {
+    initializeAutocomplete('autocomplete_address');
+});
+
+
+$(document).on('turbolinks:load', function () {
+    console.log("This will run when dom is loaded!");
+  });
+
+
+$(function() {
+    page_set_storage("SurveyShow");
+
+    $(".numberIncrement").TouchSpin({
+        buttondown_class: 'btn btn-white',
+        buttonup_class: 'btn btn-white',
+        min: 0
+    });
+
+    $('.i-checks').iCheck({
+        checkboxClass: 'icheckbox_square-green',
+        radioClass: 'iradio_square-green',
+    });
+
+    $(".non_other_select").select2({
+        placeholder: "Choose One Below",
+        allowClear: true
+    });
+
+    $(".other_select").select2({
+        placeholder: "Choose One Below Or Type In Your Response",
+        allowClear: true,
+        tags: true
+    });
+
+    $('.input-group.date').datepicker({
+        todayBtn: "linked",
+        keyboardNavigation: false,
+        forceParse: false,
+        calendarWeeks: true,
+        autoclose: true
+    });
+
+    $('.date-mask').mask('00/00/0000');
+
+
+});
+
+</script>
+<% end %>

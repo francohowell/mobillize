@@ -1,0 +1,108 @@
+<!-- Bread Crumb -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-4">
+        <h2>Add Contacts</h2>
+         <ol class="breadcrumb">
+            <li class="breadcrumb-item active">
+                Add Contacts From <%= @cu.file.identifier %>
+            </li>
+        </ol>
+    </div>
+</div>
+
+<!-- Alert Management -->
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+
+<div class="wrapper wrapper-content animated fadeInRight" id="loadingarea">
+    <div class="sk-spinner sk-spinner-wave">
+        <div class="sk-rect1"></div>
+        <div class="sk-rect2"></div>
+        <div class="sk-rect3"></div>
+        <div class="sk-rect4"></div>
+        <div class="sk-rect5"></div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="float-left">
+                        <h2>Processing <%= @cu.file.identifier %></h2>
+                        <span class="small badge badge-warning"><%= @csv.count %> Contacts</span>
+                    </div>
+                    <div class="float-right">
+                        <%= button_to "Add All Contacts", contacts_process_upload_path(upload_id: @cu.id), class: "btn btn-primary btn-lg", onclick: "loading()"%>
+                    </div>
+
+                    <div class="project-list">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <td>Cell Phone</td>
+                                    <td>First Name</td>
+                                    <td>Last Name</td>
+                                    <td>Primary Email</td>
+                                    <td>Secondary Email </td>
+                                    <td>Company</td>
+                                    <td>Group 1</td>
+                                    <td>Group 2</td>
+                                    <td>Group 3</td>
+                                    <td>Group 4</td>
+                                    <td>Group 5</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% @items.each do |row| %>
+                                    <tr>
+
+                                        <td> <%=  number_to_phone(row[0][1]) %></td>
+                                        <td> <%= row[1][1] %></td>
+                                        <td> <%= row[2][1] %></td>
+                                        <td class="contact-type">
+                                            <% if row[3][1] %>
+                                                <i class="fa fa-envelope"> </i><%= row[3][1] %>
+                                            <% end %>
+                                        </td>
+                                        <td class="contact-type">
+                                            <% if row[4][1] %>
+                                                <i class="fa fa-envelope"> </i><%= row[4][1] %>
+                                            <% end %>
+                                        </td>
+                                        <td> <%= row[5][1] %></td>
+                                        <td> <%= row[6][1] %></td>
+                                        <td> <%= row[7][1] %></td>
+                                        <td> <%= row[8][1] %></td>
+                                        <td> <%= row[9][1] %></td>
+                                    </tr>
+                                <% end %>
+                            </tbody>
+                        </table>
+                        <%== pagy_bootstrap_nav(@pagy_a) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<% content_for :javascript do %>
+    <script type="text/javascript">
+        page_set_storage("ContactUpload");
+
+        function loading() {
+            $('#loadingarea').toggleClass('sk-loading');
+        };
+
+    </script>
+<% end %>

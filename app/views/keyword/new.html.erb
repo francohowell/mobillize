@@ -1,0 +1,372 @@
+<%= stylesheet_link_tag "forms" %>
+<%= stylesheet_link_tag "tables" %>
+
+<%= javascript_include_tag "forms" %>
+<%= javascript_include_tag "tables" %>
+
+<!-- Bread Crumb -->
+<div class="row wrapper border-bottom white-bg page-heading">
+     <div class="col-sm-4">
+        <h2>Create New Keyword</h2>
+         <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="<%= url_for :controller => 'keyword', :action => 'overview' %>">Keywords</a>
+            </li>
+            <li class="breadcrumb-item active">
+                <strong>Create New Keyword</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+    <% if key == "success" || key == "notice" %>
+    <div class="col-lg-7 alert alert-dismissable alert-success">
+        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+        <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+            <% end %>
+            <%= value %>
+        </div>
+        <% end %>
+    </div>
+
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <%= form_for @kw, url: {action: "create", controller: "keyword"} do |f| %>
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="ibox ">
+                        <div class="ibox-title text-center">
+                            <h5>New Keyword</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <div class="form-group row">
+                                <label class="col-lg-2 col-form-label">Keyword Name</label>
+                                <div class="col-lg-10">
+                                    <%= f.text_field :name, placeholder: "Keyword Name", class: "form-control", required: true, id: "keyword_name", onkeyup: "optin_preview(); help_preview();"%>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-lg-2 col-form-label">Keyword Description</label>
+                                <div class="col-lg-10"><%= f.text_field :description, placeholder: "Keyword Description", class: "form-control"%>
+                                </div>
+                            </div>
+                            <div class="form-group row" id="adminSelect">
+                                <label class="col-lg-2 col-form-label">Select Keyword Admins</label>
+                                <div class="col-lg-10">
+                                    <%= select_tag("admins[]", options_for_select(@contacts.map { |m| [m.cell_phone, m.id]}), class: "chosen-select", data: { placeholder:"Choose Keyword Text In Admins"}, tabindex: "4", multiple: true) %>
+                                    <small>Add any cell phone numbers (must be updated in contact information as an admin first) for people you want to be able to initiate group messages from their phones from this keyword.</small>
+                                </div>
+                            </div>
+                            <% if @groups %>
+                            <br />
+                            <br />
+                            <div class="ibox-title">
+                                <h5>Automatically Add Opt Ins To These Groups:</h5>
+                            </div>
+                            <div class="form-group" id="groupSelect">
+                                <div class="col-lg-12">
+                                    <%= select_tag("groups[]", options_for_select(@groups.map { |m| [m.name.titleize, m.id]}), class: "chosen-select", data: { placeholder:"Choose a Group or Groups..."}, style: "width:350px;", tabindex: "4", multiple: true) %>
+                                    <small>*Note, if creating a keyword admin on this keyword you must add the group(s) here or your keyword admin messages will be sent to all contacts.</small>
+                                </div>
+                            </div>
+                            <% end %>
+
+                            <br />
+                            <br />
+                            <div class="ibox-title">
+                                <h5>Keyword Automatic Messages</h5>
+                            </div>
+                            <br />
+                            <div class="form-group row">
+                                <label class="col-lg-2 col-form-label">Opt In Text</label>
+                                <div class="col-lg-10">
+                                    <div class="input-group m-b">
+                                        <%= f.text_field :opt_in_text, placeholder: "Your Opt In Message", class: "form-control", onchange: "calculate_rate('opt-in-rate', this);", onload: "calculate_rate('opt-in-rate', this);", id: "opt-in", onkeyup: "optin_preview();"%>
+                                        <div class="input-group-append">
+                                            <span class="input-group-addon" style="background-color: #3AC1CC; border-color: #3AC1CC; color: white;">
+                                                <span id="opt-in-rate">1x</span> <small>Rate</small>
+                                            </span>
+                                        </div>
+                                        <small>This is the confirmation message people will receive when they text your keyword to join your list. The text you enter will be appended with the text: <%= SystemValue.find_by_key("additional_opt_out_text").value %></small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-lg-2 col-form-label">Opt In Media</label>
+                                <div class="col-lg-10">
+                                    <div class="custom-file">
+                                        <%= f.file_field :opt_in_media, class: "custom-file-input", id: "mms", data: { max_file_size: 1.megabytes }, accept: 'image/png,image/gif,image/jpeg,image/jpg' %>
+                                        <label for="logo" class="custom-file-label">Choose file...</label>
+                                    </div>
+                                    <small>Response media when someone opts into the keyword. (Limit 1MB)</small>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="form-group row">
+                                <label class="col-lg-2 col-form-label">Help Text</label>
+                                <div class="col-lg-10">
+                                    <div class="input-group m-b">
+                                        <%= f.text_field :help_text, placeholder: "Your Help Message", class: "form-control", onchange: "calculate_rate('help-rate', this);", onload: "calculate_rate('help-rate', this);", id: "help", onkeyup: "help_preview();"%>
+                                        <div class="input-group-append">
+                                            <span class="input-group-addon" style="background-color: #3AC1CC; border-color: #3AC1CC; color: white;">
+                                                <span id="help-rate">1x</span> <small>Rate</small>
+                                            </span>
+                                        </div>
+                                        <small>This is the message people will receive when they text help to your keyword. Your message must include a phone number or email address to request help. If you do not enter new content, your message will read: Please email your help request to this email: <%= @current_user.email %></small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-lg-2 col-form-label">Widget Invitation Text</label>
+                                <div class="col-lg-10"><%= f.text_field :invitation_text, placeholder: "Widget Invitation Text", class: "form-control"%>
+                                    <small>Widget text.</small>
+                                </div>
+                            </div>
+
+                            <div class="form-group row text-center">
+                                <div class="col-lg-12">
+                                    <%= f.submit "Create", class: "btn btn-md btn-primary"%>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="row"> <!--  Submit -->
+                        <div class="col-lg-12">
+                            <div class="ibox">
+                                <div class="ibox-content">
+                                    <div id="overview">
+                                        <div class="m-b-lg">
+                                            <h2>Previews</h2>
+                                            <hr />
+                                            <small><strong>Opt In</strong></small>
+                                            <div class="talk-bubble talk-bubble-round" id="image_preview_container" style="display: none;">
+                                                <div class="talktext">
+                                                    <%# <p id="message_preview"></p> %>
+                                                    <img id="image_preview" src="#" alt="your image" />
+                                                </div>
+                                            </div>
+                                            <div class="talk-bubble talk-bubble-round">
+                                                <div class="talktext" id="message_preview">
+                                                    <p id="message_preview_opt_in"></p>
+                                                </div>
+                                            </div>
+                                            <br />
+                                            <hr />
+                                            <small><strong>Help</strong></small>
+                                            <div class="talk-bubble talk-bubble-round" id="image_preview_container" style="display: none;">
+                                                <div class="talktext">
+                                                    <%# <p id="message_preview"></p> %>
+                                                    <img id="image_preview" src="#" alt="your image" />
+                                                </div>
+                                            </div>
+                                            <div class="talk-bubble talk-bubble-round">
+                                                <div class="talktext" id="message_preview">
+                                                    <p id="message_preview_help"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                </div>
+            </div>
+        <% end %>
+
+
+    </div>
+    <br />
+    <br />
+    <% content_for :javascript do %>
+
+    <script type="text/javascript">
+
+        // Updates The Preview Message
+        function optin_preview() {
+            var add_on_opt_in = "<%= SystemValue.find_by_key("additional_opt_out_text").value %>";
+
+            var preview_element = document.getElementById("message_preview_opt_in");
+
+            var opt_in_text = document.getElementById("opt-in").value;
+
+            var keyword_name = document.getElementById("keyword_name").value;
+
+            var preview_text = "";
+
+            if (!opt_in_text) {
+                opt_in_text = "<%= SystemValue.find_by_key("default_opt_in_text").value %>";
+                preview_text = [keyword_name.toUpperCase(), opt_in_text].join(" ");
+            }else{
+                preview_text = [keyword_name.toUpperCase(), opt_in_text, add_on_opt_in].join(" ");
+            }
+
+
+            preview_element.innerHTML = preview_text
+        }
+
+        function help_preview() {
+            var preview_element = document.getElementById("message_preview_help");
+
+            var help_text = document.getElementById("help").value;
+
+            var keyword_name = document.getElementById("keyword_name").value;
+
+            if (!help_text) {
+                help_text = "<%= SystemValue.find_by_key("default_help_text").value %> <%= @current_user.email %>"
+            }
+
+            var preview_text = [keyword_name.toUpperCase(), help_text].join(" ")
+
+            preview_element.innerHTML = preview_text
+        }
+
+        $(document).ready(function() {
+            $(window).keydown(function(event) {
+                if (event.keyCode == 13) {
+                    event.preventDefault();
+                    return false;
+                }
+            });
+        });
+
+        function calculate_rate(id, el) {
+            var mms = false;
+            if (id == "opt-in-rate") {
+                if (document.getElementById("mms").value) {
+                    mms = true;
+                }
+            }
+            console.log("Text Change");
+            console.log(`This: ${el.value}`);
+            $.ajax({
+                url: "/message_check",
+                type: "GET",
+                dataType: "json",
+                data: {
+                    "message" : el.value,
+                    "keyword_name" : $("#keyword_name").value,
+                    "mms": mms
+
+                },
+                error: function (xhr, status, error) {
+                    console.error(`AJAX Error: ${error}`);
+                },
+                success: function (response) {
+                    console.log(response);
+                    document.getElementById(id).innerHTML = `${response["rate"]}x`;
+                }
+            });
+        };
+
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                $('#image_preview').attr('src', e.target.result);
+                }
+
+                reader.readAsDataURL(input.files[0]); // convert to base64 string
+            }
+        }
+
+        function pasted(){
+            console.log("PASTED");
+        }
+
+
+
+        $(function() {
+
+            page_set_storage("KeywordNew");
+
+            optin_preview();
+            help_preview();
+
+            calculate_rate("opt-in-rate", document.getElementById("opt-in"));
+            calculate_rate("help-rate", document.getElementById("help"));
+
+            $('.chosen-select').chosen({
+                width: "100%"
+            });
+            $('.footable').footable();
+            $('.footable2').footable();
+
+            if ($('.custom-file-input').value != null)  {
+                document.getElementById('image_preview_container').style.display = "block";
+                let fileName = $('.custom-file-input').val().split('\\').pop();
+                $('.custom-file-input').next('.custom-file-label').addClass("selected").html(fileName);
+                readURL(this);
+                console.log("Custom File Input")
+            }else{
+                console.log("NOT Custom File Input")
+                document.getElementById("mms").value = null;
+            };
+
+            // Methods Assigned With Actions
+
+            $('.custom-file-input').on('change', function() {
+                const size =  (this.files[0].size / 1024 / 1024).toFixed(2);
+                console.log(`-----------> SIZE: ${size}`)
+                if (size > 1) {
+                    //alert("File must be 1MB or smaller.");
+                    swal({
+                        title: "File Too Large",
+                        text: "Your image must be 1MB or smaller.",
+                    });
+
+                }else{
+                    document.getElementById('image_preview_container').style.display = "block";
+                    let fileName = $(this).val().split('\\').pop();
+                    $(this).next('.custom-file-label').addClass("selected").html(fileName);
+                    readURL(this);
+                    calculate_rate("opt-in-rate", document.getElementById("opt-in"));
+                }
+            });
+
+            var opt_elem = document.getElementById('opt-in')
+            opt_elem.addEventListener('paste', (event) => {
+                optin_preview();
+
+                setTimeout(function () {
+                    // do something with text
+                    calculate_rate("opt-in-rate", opt_elem);
+
+                }, 50);
+
+            });
+            opt_elem.addEventListener('keyup', (event) => {
+                optin_preview();
+                calculate_rate("opt-in-rate", opt_elem);
+            });
+
+
+            var hlp_elem = document.getElementById('help')
+            hlp_elem.addEventListener('paste', (event) => {
+                help_preview();
+
+                setTimeout(function () {
+                    // do something with text
+                    calculate_rate("help-rate", hlp_elem);
+
+                }, 50);
+
+            });
+            hlp_elem.addEventListener('keyup', (event) => {
+                help_preview();
+                calculate_rate("help-rate", hlp_elem);
+            });
+
+        });
+    </script>
+
+    <% end %>

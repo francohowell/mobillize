@@ -1,0 +1,121 @@
+<%= stylesheet_link_tag "forms" %>
+<%= stylesheet_link_tag "tables" %>
+
+<%= javascript_include_tag "forms" %>
+<%= stylesheet_link_tag "tables" %>
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-8">
+        <h2>Inbox</h2>
+    </div>
+    <div class="col-lg-4">
+        <%= link_to("Mobile View", inbox_overview_mobile_path, class: "btn btn-primary float-right btn-sm", id: "mobile_view_button") %>
+    </div>
+</div>
+
+<style>
+@media (min-width:600px)  { /* portrait tablets, portrait iPad, e-readers (Nook/Kindle), landscape 800x480 phones (Android) */
+    #mobile_view_button {
+        visibility: visible;
+    }
+}
+
+#mobile_view_button {
+    visibility: hidden;
+}
+</style>
+
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox">
+                <div class="ibox-content">
+
+                     <div class="float-right">
+                        <%= link_to inbox_export_responses_path(start_date: params[:start_date], end_date: params[:end_date], format: :csv), class: "btn btn-warning float-right btn-sm" do %>
+                            <i class="fa fa-cloud-download"></i> Export Messages
+                        <% end %>
+                    </div>
+                    <h2>Inbox</h2>
+                    <% if !@responses.empty? %>
+                        <span class="text-muted small float-right">Last message: <i class="fa fa-clock-o"></i> <%= @responses.first.created_at.in_time_zone(current_user.organization.timezone).strftime("%-m-%e-%Y %l:%M %p") %></span>
+                    <% end %>
+                    <div class="input-group" id="date_range">
+                        <%= form_tag(inbox_overview_path, method: :get) do %>
+                            <label class="font-normal">Select Date Range of Responses</label>
+                            <div class="input-daterange input-group" id="datepicker">
+                                <%= text_field_tag "start_date", params[:start_date].nil? ? Date.yesterday.strftime("%m/%d/%Y"
+                                ) : params[:start_date], class: "form-control-sm form-control"%>
+                                <span class="input-group-addon">to</span>
+                                <%= text_field_tag "end_date", params[:end_date].nil? ? Date.today.strftime("%m/%d/%Y"
+                                ) : params[:end_date], class: "form-control-sm form-control"%>
+                                <% if params[:start_date] %>
+                                    <%= link_to "Clear", inbox_overview_path, class: "btn btn-danger float-right btn-sm" %>
+                                <% end %>
+                                <%= submit_tag "Filter Messages", class: "btn btn-primary float-right btn-sm"%>
+                            </div>
+                        <% end %>
+                    </div>
+                    <div class="clients-list">
+                        <ul class="nav nav-tabs">
+                            <li><a class="nav-link active" data-toggle="tab" href="#tab-1"><i class="fa fa-envelope"></i> Messages (<%= params[:start_date].nil? ? "Most Recent" : "#{params[:start_date]}-#{params[:end_date]}"%>)</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="tab-1" class="tab-pane active">
+                                <div class="full-height-scroll">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <tbody>
+                                                <% for c in @responses %>
+                                                    <tr>
+                                                        <td><%= c.cell_phone %></td>
+                                                        <td class="contact-type"><i class="fa fa-envelope"> </i></td>
+                                                        <td><%= c.message %></td>
+                                                        <td> <%= c.created_at.in_time_zone(current_user.organization.timezone).strftime("%-m-%e-%Y %l:%M %p") %> </td>
+                                                    </tr>
+                                                <% end %>
+                                            </tbody>
+                                        </table>
+                                        <%== pagy_bootstrap_nav(@pagy) %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <br />
+</div>
+
+<br />
+<br />
+
+<% content_for :javascript do %>
+    <script type="text/javascript">
+        page_set_storage("InboxOverview");
+
+        $('#date_range .input-daterange').datepicker({
+            keyboardNavigation: false,
+            forceParse: false,
+            autoclose: true
+        });
+
+    </script>
+<% end %>

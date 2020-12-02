@@ -1,0 +1,7 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  acceptance_date: 2019-04-20 18:55:38
+
+two:
+  acceptance_date: 2019-04-20 18:55:38

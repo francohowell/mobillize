@@ -1,0 +1,840 @@
+<%= stylesheet_link_tag "dashboards" %>
+<%= stylesheet_link_tag "forms" %>
+
+<%= javascript_include_tag "dashboards" %>
+<%= javascript_include_tag "forms" %>
+
+<div class="row wrapper border-bottom white-bg page-heading justify-content-md-center">
+    <div class="col-lg-10 text-center">
+        <h1>Mobilize Comms</h1>
+        <hr />
+        <h1><%= @month %> <%= @year %></h1>
+        <br />
+        <%= form_tag admin_page_main_dashboard_path, method: :get do %>
+            <div class="form-group row">
+                <label class="col-lg-2 col-form-label"><strong>Month</strong></label>
+
+                <div class="col-lg-3">
+                    <%= select_tag :month, options_for_select(Date::MONTHNAMES, @month), class: "form-control chosen-select"%>
+                </div>
+                
+                <label class="col-lg-2 col-form-label"><strong>Year</strong></label>
+
+                <div class="col-lg-3">
+                    <%= select_tag :year, options_for_select([2018,2019,2020,2021,2022], @year.to_i), class: "form-control chosen-select"%>    
+                </div>
+                <div  class="col-lg-2">
+                    <%= submit_tag "Submit", class: "btn btn-lg btn-warning"%>
+                </div>
+            </div>
+        <% end %>
+    </div>
+</div>
+
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <!-- Accounts -->
+        <div class="col-lg-3">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>Accounts</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h1 class="no-margins"><%= number_with_delimiter(@new_accounts_count) %></h1>
+                            <% if @difference_new_accounts >= 0 %>
+                                <div class="stat-percent font-bold text-info"><%= @difference_new_accounts %>% <i class="fa fa-level-up"></i></div>
+                            <% else %>
+                                <div class="stat-percent font-bold text-danger"><%= @difference_new_accounts %>% <i class="fa fa-level-down"></i></div>
+                            <% end %>
+                            <small>New Accounts</small>
+                        </div>
+                        <div class="col-md-6">
+                            <h1 class="no-margins"><%= number_with_delimiter(@total_accounts_count) %></h1>
+                            <small>Total Accounts</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keywords -->
+        <div class="col-lg-6">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>Keywords</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h1 class="no-margins"><%= number_with_delimiter(@keyword_new_subscribed_count) %></h1>
+                            <% if @difference_keyword_subscribed >= 0 %>
+                                <div class="stat-percent font-bold text-info"><%= @difference_keyword_subscribed %>% <i class="fa fa-level-up"></i></div>
+                            <% else %>
+                                <div class="stat-percent font-bold text-danger"><%= @difference_keyword_subscribed %>% <i class="fa fa-level-down"></i></div>
+                            <% end %>
+                            <small>New Subscribed Keywords</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h1 class="no-margins"><%= number_with_delimiter(@keyword_subscribed_count) %></h1>
+                            <small>Total Subscribed Keywords</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h1 class="no-margins"><%= number_with_delimiter(@keyword_count) %></h1>
+                            <small>Total Keywords</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- -->
+
+        <div class="col-lg-4">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <span class="label label-primary float-right">Today</span>
+                    <h5>visits</h5>
+                </div>
+                <div class="ibox-content">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h1 class="no-margins">406,42</h1>
+                            <div class="font-bold text-navy">44% <i class="fa fa-level-up"></i> <small>Rapid pace</small></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h1 class="no-margins">206,12</h1>
+                            <div class="font-bold text-navy">22% <i class="fa fa-level-up"></i> <small>Slow pace</small></div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>Monthly income</h5>
+                    <div class="ibox-tools">
+                        <span class="label label-primary">Updated 12.2015</span>
+                    </div>
+                </div>
+                <div class="ibox-content no-padding">
+                    <div class="flot-chart m-t-lg" style="height: 55px;">
+                        <div class="flot-chart-content" id="flot-chart1"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="ibox ">
+                <div class="ibox-content">
+                    <div>
+                                        <span class="float-right text-right">
+                                        <small>Average value of sales in the past month in: <strong>United states</strong></small>
+                                            <br/>
+                                            All sales: 162,862
+                                        </span>
+                        <h3 class="font-bold no-margins">
+                            Half-year revenue margin
+                        </h3>
+                        <small>Sales marketing.</small>
+                    </div>
+
+                    <div class="m-t-sm">
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div>
+                                    <canvas id="lineChart" height="114"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <ul class="stat-list m-t-lg">
+                                    <li>
+                                        <h2 class="no-margins">2,346</h2>
+                                        <small>Total orders in period</small>
+                                        <div class="progress progress-mini">
+                                            <div class="progress-bar" style="width: 48%;"></div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <h2 class="no-margins ">4,422</h2>
+                                        <small>Orders in last month</small>
+                                        <div class="progress progress-mini">
+                                            <div class="progress-bar" style="width: 60%;"></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="m-t-md">
+                        <small class="float-right">
+                            <i class="fa fa-clock-o"> </i>
+                            Update on 16.07.2015
+                        </small>
+                        <small>
+                            <strong>Analysis of sales:</strong> The value has been changed over time, and last month reached a level over $50,000.
+                        </small>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <span class="label label-warning float-right">Data has changed</span>
+                    <h5>User activity</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-4">
+                            <small class="stats-label">Pages / Visit</small>
+                            <h4>236 321.80</h4>
+                        </div>
+
+                        <div class="col-4">
+                            <small class="stats-label">% New Visits</small>
+                            <h4>46.11%</h4>
+                        </div>
+                        <div class="col-4">
+                            <small class="stats-label">Last week</small>
+                            <h4>432.021</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-4">
+                            <small class="stats-label">Pages / Visit</small>
+                            <h4>643 321.10</h4>
+                        </div>
+
+                        <div class="col-4">
+                            <small class="stats-label">% New Visits</small>
+                            <h4>92.43%</h4>
+                        </div>
+                        <div class="col-4">
+                            <small class="stats-label">Last week</small>
+                            <h4>564.554</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-4">
+                            <small class="stats-label">Pages / Visit</small>
+                            <h4>436 547.20</h4>
+                        </div>
+
+                        <div class="col-4">
+                            <small class="stats-label">% New Visits</small>
+                            <h4>150.23%</h4>
+                        </div>
+                        <div class="col-4">
+                            <small class="stats-label">Last week</small>
+                            <h4>124.990</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-lg-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>Custom responsive table </h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <li><a href="#" class="dropdown-item">Config option 1</a>
+                            </li>
+                            <li><a href="#" class="dropdown-item">Config option 2</a>
+                            </li>
+                        </ul>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-sm-9 m-b-xs">
+                            <div data-toggle="buttons" class="btn-group btn-group-toggle">
+                                <label class="btn btn-sm btn-white"> <input type="radio" id="option1" name="options"> Day </label>
+                                <label class="btn btn-sm btn-white active"> <input type="radio" id="option2" name="options"> Week </label>
+                                <label class="btn btn-sm btn-white"> <input type="radio" id="option3" name="options"> Month </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Search">
+                                <div class="input-group-append">
+                                    <button class="btn btn-sm btn-primary" type="button">Go!</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+
+                                <th>#</th>
+                                <th>Project </th>
+                                <th>Name </th>
+                                <th>Phone </th>
+                                <th>Company </th>
+                                <th>Completed </th>
+                                <th>Task</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Project <small>This is example of project</small></td>
+                                <td>Patrick Smith</td>
+                                <td>0800 051213</td>
+                                <td>Inceptos Hymenaeos Ltd</td>
+                                <td><span class="pie">0.52/1.561</span></td>
+                                <td>20%</td>
+                                <td>Jul 14, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Alpha project</td>
+                                <td>Alice Jackson</td>
+                                <td>0500 780909</td>
+                                <td>Nec Euismod In Company</td>
+                                <td><span class="pie">6,9</span></td>
+                                <td>40%</td>
+                                <td>Jul 16, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Betha project</td>
+                                <td>John Smith</td>
+                                <td>0800 1111</td>
+                                <td>Erat Volutpat</td>
+                                <td><span class="pie">3,1</span></td>
+                                <td>75%</td>
+                                <td>Jul 18, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Gamma project</td>
+                                <td>Anna Jordan</td>
+                                <td>(016977) 0648</td>
+                                <td>Tellus Ltd</td>
+                                <td><span class="pie">4,9</span></td>
+                                <td>18%</td>
+                                <td>Jul 22, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Alpha project</td>
+                                <td>Alice Jackson</td>
+                                <td>0500 780909</td>
+                                <td>Nec Euismod In Company</td>
+                                <td><span class="pie">6,9</span></td>
+                                <td>40%</td>
+                                <td>Jul 16, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>Project <small>This is example of project</small></td>
+                                <td>Patrick Smith</td>
+                                <td>0800 051213</td>
+                                <td>Inceptos Hymenaeos Ltd</td>
+                                <td><span class="pie">0.52/1.561</span></td>
+                                <td>20%</td>
+                                <td>Jul 14, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Gamma project</td>
+                                <td>Anna Jordan</td>
+                                <td>(016977) 0648</td>
+                                <td>Tellus Ltd</td>
+                                <td><span class="pie">4,9</span></td>
+                                <td>18%</td>
+                                <td>Jul 22, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>Project <small>This is example of project</small></td>
+                                <td>Patrick Smith</td>
+                                <td>0800 051213</td>
+                                <td>Inceptos Hymenaeos Ltd</td>
+                                <td><span class="pie">0.52/1.561</span></td>
+                                <td>20%</td>
+                                <td>Jul 14, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Alpha project</td>
+                                <td>Alice Jackson</td>
+                                <td>0500 780909</td>
+                                <td>Nec Euismod In Company</td>
+                                <td><span class="pie">6,9</span></td>
+                                <td>40%</td>
+                                <td>Jul 16, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Betha project</td>
+                                <td>John Smith</td>
+                                <td>0800 1111</td>
+                                <td>Erat Volutpat</td>
+                                <td><span class="pie">3,1</span></td>
+                                <td>75%</td>
+                                <td>Jul 18, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Gamma project</td>
+                                <td>Anna Jordan</td>
+                                <td>(016977) 0648</td>
+                                <td>Tellus Ltd</td>
+                                <td><span class="pie">4,9</span></td>
+                                <td>18%</td>
+                                <td>Jul 22, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Alpha project</td>
+                                <td>Alice Jackson</td>
+                                <td>0500 780909</td>
+                                <td>Nec Euismod In Company</td>
+                                <td><span class="pie">6,9</span></td>
+                                <td>40%</td>
+                                <td>Jul 16, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>Project <small>This is example of project</small></td>
+                                <td>Patrick Smith</td>
+                                <td>0800 051213</td>
+                                <td>Inceptos Hymenaeos Ltd</td>
+                                <td><span class="pie">0.52/1.561</span></td>
+                                <td>20%</td>
+                                <td>Jul 14, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Gamma project</td>
+                                <td>Anna Jordan</td>
+                                <td>(016977) 0648</td>
+                                <td>Tellus Ltd</td>
+                                <td><span class="pie">4,9</span></td>
+                                <td>18%</td>
+                                <td>Jul 22, 2013</td>
+                                <td><a href="#"><i class="fa fa-check text-navy"></i></a></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+
+<% content_for :javascript do %>
+
+<script type="text/javascript">
+
+$(function() {
+
+    $("span.pie").peity("pie", {
+        fill: ['#3AC1CC', '#d7d7d7', '#ffffff']
+    })
+
+    var d1 = [[1262304000000, 6], [1264982400000, 3057], [1267401600000, 20434], [1270080000000, 31982], [1272672000000, 26602], [1275350400000, 27826], [1277942400000, 24302], [1280620800000, 24237], [1283299200000, 21004], [1285891200000, 12144], [1288569600000, 10577], [1291161600000, 10295]];
+    var d2 = [[1262304000000, 5], [1264982400000, 200], [1267401600000, 1605], [1270080000000, 6129], [1272672000000, 11643], [1275350400000, 19055], [1277942400000, 30062], [1280620800000, 39197], [1283299200000, 37000], [1285891200000, 27000], [1288569600000, 21000], [1291161600000, 17000]];
+
+    var data1 = [
+        { label: "Data 1", data: d1, color: '#17a084' },
+        { label: "Data 2", data: d2, color: '#127e68' }
+    ];
+    $.plot($("#flot-chart1"), data1, {
+        xaxis: {
+            tickDecimals: 0
+        },
+        series: {
+            lines: {
+                show: true,
+                fill: true,
+                fillColor: {
+                    colors: [{
+                        opacity: 1
+                    }, {
+                        opacity: 1
+                    }]
+                },
+            },
+            points: {
+                width: 0.1,
+                show: false
+            },
+        },
+        grid: {
+            show: false,
+            borderWidth: 0
+        },
+        legend: {
+            show: false,
+        }
+    });
+
+    var lineData = {
+        labels: ["January", "February", "March", "April", "May", "June", "July"],
+        datasets: [
+            {
+                label: "Example dataset",
+                backgroundColor: "rgba(26,179,148,0.5)",
+                borderColor: "rgba(26,179,148,0.7)",
+                pointBackgroundColor: "rgba(26,179,148,1)",
+                pointBorderColor: "#fff",
+                data: [48, 48, 60, 39, 56, 37, 30]
+            },
+            {
+                label: "Example dataset",
+                backgroundColor: "rgba(220,220,220,0.5)",
+                borderColor: "rgba(220,220,220,1)",
+                pointBackgroundColor: "rgba(220,220,220,1)",
+                pointBorderColor: "#fff",
+                data: [65, 59, 40, 51, 36, 25, 40]
+            }
+        ]
+    };
+
+    var lineOptions = {
+        responsive: true
+    };
+
+
+    var ctx = document.getElementById("lineChart").getContext("2d");
+    new Chart(ctx, {type: 'line', data: lineData, options:lineOptions});
+
+
+});
+
+
+</script>
+
+<% end %>
+
+ <div class="col-lg-12 justify-content-md-center" >
+        <div class="widget style1 text-center">
+            <div class="m-b-md">
+                <h2 class="font-bold no-margins">
+                    <%= Date::MONTHNAMES[@month.to_i] %> <%= @year %>
+                </h2>
+            </div>
+            <div>
+                 <%= form_tag admin_page_main_dashboard_path, method: :get do %>
+                    <div class="form-group row">
+                        <label class="col-lg-2 col-form-label">Month</label>
+
+                        <div class="col-lg-4">
+                            <%= select_tag :month, options_for_select([1,2,3,4,5,6,7,8,9,10,11,12], @month.to_i), class: "form-control chosen-select"%>
+                        </div>
+                        
+                        <label class="col-lg-2 col-form-label">Year</label>
+
+                        <div class="col-lg-4">
+                            <%= select_tag :year, options_for_select([2018,2019,2020,2021,2022], @year.to_i), class: "form-control chosen-select"%>    
+                        </div>
+                    </div>
+                    <div class="form-group row justify-content-md-center">
+                        <div>
+                            <%= submit_tag "Submit", class: "btn btn-lg btn-warning"%>
+                        </div>
+                    </div>
+                <% end %>
+            </div>
+        </div>
+    </div>
+
+<div class="wrapper wrapper-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="ibox-title">
+                    Data Management 
+                </div>
+                <div class="ibox ">
+                    <div class="ibox-content">
+                        <%= link_to "Plan Admin Management", admin_page_plan_overview_path, class: "btn-block btn-lg btn-danger text-center" %>
+                        <%= link_to "Usage Report For This Month", admin_page_usage_report_path(month: @month, year: @year), class: "btn-block btn-lg btn-primary text-center" %>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="ibox-title">
+                    <h3 class="text-center">Reports</h3>
+                </div>
+                <div class="ibox ">
+                    <div class="ibox-content">
+                        <div class="col-md-4">
+                            <%= link_to "Plan Admin Management", admin_page_plan_overview_path, class: "btn-block btn-lg btn-danger text-center" %>
+                        </div>
+                        <div class="col-md-4">
+                            <%= link_to "Usage Report For This Month", admin_page_usage_report_path(month: @month, year: @year), class: "btn-block btn-lg btn-primary text-center" %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="ibox ">
+                    <div class="ibox-title text-center">
+                        <h5>Messages Out</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins"><%= number_with_delimiter(@messages_out, delimiter: ",")%></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="ibox ">
+                    <div class="ibox-title text-center">
+                        <h5>Messages In</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins"><%= number_with_delimiter(@messages_in, delimiter: ",")%></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="ibox ">
+                    <div class="ibox-title text-center">
+                        <h5>New Organizations</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins"><%= number_with_delimiter(@new_accounts.count, delimiter: ",")%></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="ibox ">
+                    <div class="ibox-title text-center">
+                        <h5>Keywords In Use</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins"><%= number_with_delimiter(@keyword_count, delimiter: ",")%></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-content">
+                        <div>
+                            <h3 class="font-bold no-margins">
+                                mGage Usage
+                            </h3>
+                        </div>
+
+                        <div class="m-t-sm">
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <ul class="stat-list m-t-lg">
+                                        <li>
+                                            <h2 class="no-margins">
+                                                <% remaining_amount = 200000 - (@messages_out + @messages_in) %>
+                                                <% if remaining_amount > 0 %>
+                                                    <%= number_with_delimiter(200000 - (@messages_out + @messages_in), delimiter: ",")%>
+                                                <% else %>
+                                                    100% Usage
+                                                <% end %>
+                                            </h2>
+                                            <small>Remaining mGage Text Usage</small>
+                                            <div class="progress progress-mini">
+                                                <% cal = ((@messages_out + @messages_in) / 200000.0) * 100 %>
+                                                <div class="progress-bar" style="width: <%= cal > 1 ? cal : 0 %>%;"></div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>Income & Costs Projections</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-3">
+                                <small class="stats-label">mGage Costs</small>
+                                <h4><%= number_to_currency(@costs) %></h4>
+                            </div>
+                            <div class="col-3">
+                                <small class="stats-label">Minimal Income (0.04 msgs)</small>
+                                <h4><%= number_to_currency(@income) %></h4>
+                            </div>
+                            <div class="col-3">
+                                <small class="stats-label">Minimal Keyword Income</small>
+                                <h4><%= number_to_currency(@additional_keyword_count * 25) %></h4>
+                            </div>
+                             <div class="col-3">
+                                <small class="stats-label">Minimal Profit</small>
+                                <h4><%= number_to_currency((@income + @additional_keyword_count*25) - @costs) %></h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>New Organizations This Month </h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Organization</th>
+                                    <th>Organization Type </th>
+                                    <th>Organization Size </th>
+                                    <th>Plan </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                    <% for account in @new_accounts %>
+                                        <tr>
+                                            <% if account %>
+                                                <td><%= account.name%></td>
+                                            <% else %>
+                                                <td>Organization No Longer Exists</td>
+                                            <% end %>
+                                            <td><%= account.industry %></td>
+                                            <td><%= account.size %></td>
+                                            <% if account %>
+                                                <td><%= account.plan.name %></td>
+                                            <% else %>
+                                                <td>No Plan Available</td>
+                                            <% end %>
+                                        </tr>
+                                    <% end %>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>Blasts This Month </h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Blast Id</th>
+                                    <th>Send Time (MST)</th>
+                                    <th>Organization</th>
+                                    <th>Contacts</th>
+                                    <th>Message</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                    <% for blast in @blasts_this_month %>
+                                        <tr>
+                                            <td><%= blast.id %></td>
+                                            <td><%= blast.send_date_time.in_time_zone("Mountain Time (US & Canada)").strftime("%b %e, %Y at %l:%M %P") %></td>
+                                            <% if blast.organization %>
+                                                <td><%= blast.organization.name %></td>
+                                            <% else %>
+                                                <td>No Organization</td>
+                                            <% end %>
+                                            <td><%= blast.blast_contact_relationships.count %></td>
+                                            <td><small><%= blast.message %></small></td>
+                                        </tr>
+                                    <% end %>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<% content_for :javascript do %>
+
+<script type="text/javascript">
+
+$(function() {
+
+    $('.chosen-select').chosen({width: "100%"});
+
+});
+
+
+</script>
+
+<% end %>

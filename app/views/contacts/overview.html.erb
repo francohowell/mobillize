@@ -1,0 +1,200 @@
+<%= stylesheet_link_tag "miscellaneous" %>
+<%= javascript_include_tag "miscellaneous" %>
+
+<!-- Bread Crumb -->
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-4">
+        <h2>Contact Manager</h2>
+    </div>
+</div>
+
+
+<!-- Alert Management -->
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<div class="wrapper wrapper-content  animated fadeInRight">
+
+    <!-- Actions -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox ">
+                <div class="ibox-title text-center">
+                    <h5>Manage Your Contacts</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row justify-content-md-center">
+                        <div class="col-lg-4 text-center">
+                            <%= link_to contacts_new_path, class: "btn btn-w-m btn-eton-blue" do %>
+                                 <i class="fa fa-plus"></i> Add New Contacts
+                            <% end %>
+                        </div>
+                        <div class="col-lg-4 text-center">
+                            <%= link_to contacts_download_path, target: "_blank", class: "btn btn-w-m btn-primary" do %>
+                                 <i class="fa fa-download"></i> Download Contacts
+                            <% end %>
+                        </div>
+                        <div class="col-lg-4 text-center">
+                            <button class="btn btn-w-m btn-danger delete_all_contacts">
+                                <i class="fa fa-times"></i> Delete Contacts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox ">
+                <div class="ibox-title text-center">
+                    <h5>Contact Stats</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row justify-content-md-center">
+                        <div class="col-lg-4 text-center">
+                            <h4>Total Contacts</h4>
+                            <h2><%= @cons_count %></h2>
+                        </div>
+                        <div class="col-lg-4 text-center">
+                            <h4>Active Contacts</h4>
+                            <h2><%= @cons_active_count %></h2>
+                        </div>
+                        <div class="col-lg-4 text-center">
+                            <h4>Inactive Contacts</h4>
+                            <h2><%= @cons_inactive_count %></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox">
+                <div class="ibox-title text-center">
+                    <h5>Search Contacts</h5>
+                </div>
+                <div class="ibox-content">
+                    <%= form_tag "overview", method: "get" do %>
+                        <div class="row m-b-sm m-t-sm">
+                            <div class="col-md-1">
+                                <%= link_to  contacts_overview_path, id: "loading-example-btn", class: "btn btn-white btn-sm" do %><i class="fa fa-refresh"></i> Clear<% end %>
+                            </div>
+                                <div class="col-md-11">
+                                    <div class="input-group">
+                                        <%= text_field_tag :search, params[:search] ? params[:search] : nil, class: "form-control-sm  form-control", placeholder:"Search By First Name, Last Name, or Cell Phone"  %>
+                                        <span class="input-group-btn">
+                                            <%= button_tag "Search", type: "submit", class: "btn btn-sm btn-primary" %>
+                                        </span>
+                                    </div>
+                                </div>
+                        </div>
+                    <% end %>
+
+                    <br />
+                    <div class="project-list">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Cell Phone</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for c in @cons %>
+                                    <tr>
+                                        <td> <%= number_to_phone(c.cell_phone, area_code: true) %></td>
+                                        <td> <%= c.first_name %></td>
+                                        <td> <%= c.last_name %></td>
+                                        <% if c.active %>
+                                            <td><span class="label label-primary">Active</span></td>
+                                        <% else %>
+                                            <td class="client-status"><span class="label label-danger">Inactive</span></td>
+                                        <% end %>
+                                        <td class="project-actions">
+                                            <%= link_to contacts_show_path(id: c.id), class: "btn btn-white btn-sm" do %><i class="fa fa-eye"></i> View<% end %>
+                                            <%= link_to contacts_edit_path(id: c.id), class: "btn btn-white btn-sm" do %><i class="fa fa-pencil"></i> Edit<% end %>
+                                        </td>
+                                    </tr>
+                                <% end %>
+                            </tbody>
+                        </table>
+                        <%== pagy_bootstrap_nav(@pagy) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><br /><br />
+
+<% content_for :javascript do %>
+    <script type="text/javascript">
+        page_set_storage("ContactOverview");
+
+        /* Sample function that returns boolean in case the browser is Internet Explorer*/
+        function isIE() {
+            ua = navigator.userAgent;
+        /* MSIE used to detect old browsers and Trident used to newer ones*/
+            var is_ie = ua.indexOf("MSIE ") > -1 || ua.indexOf("Trident/") > -1;
+
+            return is_ie;
+        };
+
+        $(function() {
+            /*
+            Create an alert to show if the browser is IE */
+            if (isIE()){
+                swal({
+                    title: "Internet Explorer Warning",
+                    text: "It looks as though you are using Internet Explorer to access the new Mobilize Comms platform. Internet Explorer is not fully compatible with our platform and we would advise using Edge, Safari, Chrome or Firefox."
+                });
+            }
+
+        });
+
+        $('.delete_all_contacts').click(function () {
+            swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover these contacts!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DB1E36",
+                confirmButtonText: "Yes, delete them all!",
+                closeOnConfirm: true
+            }, function () {
+                $.ajax({
+                    url: '<%= contacts_delete_path(all: true) %>',
+                    type: 'DELETE',
+                    data: { authenticity_token: $('[name="csrf-token"]')[0].content},
+                    success: function(result) {
+                        location = window.location // refresh page
+                    },
+                    failure: function(result) {
+                        swal("All Contact Deletion Failed!", "Your contacts have not been deleted.", "failure");
+                    }
+                });
+            });
+        });
+
+
+    </script>
+<% end %>

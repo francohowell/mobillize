@@ -1,0 +1,274 @@
+<%= stylesheet_link_tag "miscellaneous" %>
+<%= javascript_include_tag "miscellaneous" %>
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-4">
+        <h2><%= @group.name %></h2>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="<%= url_for :controller => 'groups', :action => 'overview' %>">Groups Overview</a>
+            </li>
+            <li class="breadcrumb-item active">
+                <strong><%= @group.name %></strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <% if key == "success" || key == "notice" %>
+            <div class="col-lg-7 alert alert-dismissable alert-success">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% else %>
+            <div class="col-lg-7 alert alert-dismissable alert-danger">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <% end %>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInUp">
+    <div class="row">
+        <div class="col-lg-9">
+
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="m-b-md">
+                                <%= link_to "Edit Group Details", groups_edit_path(group_id: @group.id), class: "btn btn-white btn-xs float-right" %>
+                                <h2><%= @group.name %> Group</h2>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Created by:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <% if @created_by_user %>
+                                        <dd class="mb-1"><%= @created_by_user.name %></dd>
+                                    <% else %>
+                                        <dd class="mb-1">DeActivated User</dd>
+                                    <% end %>
+                                </div>
+                            </dl>
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Contacts:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <dd class="mb-1"> <%= @group.get_contact_count %></dd>
+                                </div>
+                            </dl>
+                        </div>
+                        <div class="col-lg-6" id="cluster_info">
+
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Last Updated:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <dd class="mb-1"><%= @group.updated_at.localtime.strftime("%B %-d, %Y %l:%M %p")%></dd>
+                                </div>
+                            </dl>
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-right">
+                                    <dt>Created:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-left">
+                                    <dd class="mb-1"><%= @group.created_at.localtime.strftime("%B %-d, %Y %l:%M %p")%></dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <dl class="row mb-0">
+                                <div class="col-sm-4 text-sm-left">
+                                    <dt>Description:</dt>
+                                </div>
+                                <div class="col-sm-8 text-sm-right">
+                                    <dd class="mb-1"><%= @group.description %></dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="row m-t-sm">
+                        <div class="col-lg-12">
+                            <div class="panel blank-panel">
+                                <div class="panel-heading">
+                                    <div class="panel-options">
+                                        <ul class="nav nav-tabs">
+                                            <li><a class="nav-link active" href="#tab-1" data-toggle="tab">Contacts</a></li>
+                                            <%
+=begin%>
+ <li><a class="nav-link" href="#tab-2" data-toggle="tab">SubGroups</a></li>
+<%
+=end%>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="panel-body">
+
+                                    <div class="tab-content">
+                                        <div class="tab-pane active" id="tab-1">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr>
+                                                    <th>Cell Phone</th>
+                                                    <th>First Name</th>
+                                                    <th>Last Name</th>
+                                                    <th>Company Name</th>
+                                                    <th>View Contact</th>
+                                                    <th>Remove</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% if !@group_contacts.nil? %>
+                                                        <% for c in @group_contacts %>
+                                                            <tr>
+                                                                <td>
+                                                                    <%= number_to_phone(c.cell_phone) %>
+                                                                </td>
+                                                                <td>
+                                                                    <%= c.first_name.nil? ? "" : c.first_name %>
+                                                                </td>
+                                                                <td>
+                                                                    <%= c.last_name.nil? ? "" : c.last_name %>
+                                                                </td>
+                                                                <td>
+                                                                    <%= c.company_name.nil? ? "" : c.company_name %>
+                                                                </td>
+                                                                <td>
+                                                                    <%= link_to contacts_show_path(id: c.id), class: "btn btn-white btn-sm" do %>
+                                                                        <i class="fa fa-eye"></i> View Contact
+                                                                    <% end %>
+                                                                </td>
+                                                                <td>
+                                                                    <%= link_to groups_remove_individual_contact_path(group_id: @group.id, contact_id: c.id), class: "btn btn-danger btn-sm", method: "delete" do %>
+                                                                        <i class="fa fa-close"></i> Remove
+                                                                    <% end %>
+                                                                </td>
+                                                            </tr>
+                                                        <% end %>
+                                                    <% end %>
+                                                </tbody>
+                                            </table>
+                                            <% if !@group_contacts.empty? %>
+                                                <%== pagy_bootstrap_nav(@pagy_con) %>
+                                            <% end %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="wrapper wrapper-content project-manager text-center">
+                <h4>Administrative Group Actions</h4>
+                <div class="text-center m-t-md">
+                    <%= link_to groups_contacts_export_path(group_id: @group.id), class: "btn btn-md btn-primary", target: "_blank" do %>
+                        <i class="fa fa-arrow-circle-down"></i> Download Contacts
+                    <% end %>
+                     <p class="small">
+                        Includes all contacts in subgroups as well.
+                    </p>
+                </div>
+                <div class="text-center m-t-md">
+                     <button class="btn btn-warning reset_group">
+                        <i class="fa fa-refresh"></i> Reset Group
+                    </button>
+                    <p class="small">
+                        Removes all contacts and subgroups in this group.
+                    </p>
+                </div>
+                <div class="text-center m-t-md">
+                    <button class="btn btn-danger delete_group_contacts">
+                        <i class="fa fa-times"></i> Delete Contacts
+                    </button>
+                     <p class="small">
+                        Deletes all contacts in this group only.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<% content_for :javascript do %>
+
+<script type="text/javascript">
+
+
+    $(function() {
+
+        page_set_storage("GroupShow");
+
+
+        $('.reset_group').click(function () {
+            swal({
+                title: "Are you sure you want to reset the group?",
+                text: "You will not have any contacts left in this group.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, reset it!",
+                closeOnConfirm: true
+            }, function () {
+                 $.ajax({
+                    url: '<%= groups_reset_path(group_id: @group.id) %>',
+                    type: 'DELETE',
+                    data: { authenticity_token: $('[name="csrf-token"]')[0].content},
+                    success: function(result) {
+                        window.location = "<%= groups_show_path(id: @group.id) %>"
+                    },
+                    failure: function(result) {
+                        swal("Group Reset Failed!", "Your group has not been reset.", "failure");
+                    }
+                });
+            });
+        });
+
+        $('.delete_group_contacts').click(function () {
+            swal({
+                title: "Are you sure you want to delete the contacts in this group?",
+                text: "You will not be able to recover these contacts. If you are looking to remove the contacts from the group please choose reset group instead.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete them!",
+                closeOnConfirm: true
+            }, function () {
+                 $.ajax({
+                    url: '<%= groups_delete_contacts_path(group_id: @group.id) %>',
+                    type: 'DELETE',
+                    data: { authenticity_token: $('[name="csrf-token"]')[0].content},
+                    success: function(result) {
+                        window.location = "<%= groups_show_path(id: @group.id) %>"
+                    },
+                    failure: function(result) {
+                        swal("Contact Deletion Failed!", "Your contacts have not been deleted.", "failure");
+                    }
+                });
+            });
+        });
+
+
+
+    });
+
+</script>
+
+
+
+<% end %>

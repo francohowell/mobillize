@@ -1,0 +1,363 @@
+<%= stylesheet_link_tag "forms" %>
+<%= javascript_include_tag "forms" %>
+<%= javascript_include_tag "https://maps.googleapis.com/maps/api/js?libraries=places&key=#{Rails.application.credentials[:google_api_server_key]}" %>
+
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row justify-content-md-center">
+        <div class="col-lg-8">
+            <div class="ibox">
+                <div class="ibox-content text-center">
+                    <% if @survey %>
+                        <h1><%= @survey.name %></h1>
+                    <% else %>
+                        <h1>Could not find survey.</h1>
+                    <% end %>
+                    <small>Powered by: Mobilize Comms</small>
+                    <hr />
+                    <br />
+                    <% if @survey %>
+                        <h5><%= @survey.start_message %></h5>
+                    <% else %>
+                        <h5>We are sorry, however we could not find the survey you are looking for. Please contact the organization of the survey for further details.</h5>
+                    <% end %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-md-center">
+    <% flash.each do |key, value| %>
+        <div class="col-lg-7 alert alert-dismissable alert-<%= key == "success" || key == "notice" ? "success" : "danger" %>">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+            <%= value %>
+        </div>
+    <% end %>
+</div>
+
+<style>
+.flexbox {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   .actions {
+      text-align: center;
+      margin-top: 20px;
+   }
+}
+</style>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row justify-content-md-center">
+        <%= form_with url: {action: "submit", controller: "survey", method: "post"}, class: "col-lg-8", local: true %>
+            <%= hidden_field_tag :survey_id,  @survey.id %>
+            <%= hidden_field_tag :contact_id,  @contact_id %>
+
+            <!-- Question Areas -->
+            <% question_iterator = 1 %>
+            <% for question in @questions %>
+                <div class="col-lg-12"  id="question-area-<%= question.id %>">
+                    <div class="panel panel-default">
+                        <div class="panel-heading text-center">
+                            <h3><%= question.question.html_safe %></h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="row justify-content-md-center">
+                                <div class="col-lg-10">
+                                    <p><%= question.detail %></p>
+                                </div>
+                                <div class="col-lg-10">
+                                    <% qvalue = params["#{question.id}"] ? params["#{question.id}"] :  @survey.preload ? question.find_answer(@contact_id) : nil %>
+                                    <% question_required = question.required && question.validation_array.empty? %>
+                                    <% if question.is_text? %>
+                                        <!-- Text Field Response -->
+                                        <%= text_field_tag question.id, qvalue, placeholder: "Please Type In Your Answer Here", required: question_required, id: question.id, class: "form-control" %>
+                                    <% elsif question.is_number? %>
+                                        <!-- Number Field Response -->
+                                        <%= number_field_tag question.id, qvalue, min: question.min_range, max: question.max_range, placeholder: "Please Type In Your Number Here", required: question_required, id: question.id, class: "form-control quantity" %>
+                                    <% elsif question.is_date? %>
+                                        <!-- DateTime Field Response -->
+                                        <div class="input-group date">
+                                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                                            <%= text_field_tag(question.id, qvalue, class: "form-control", id: question.id, placeholder: "MM/DD/YYYY") %>
+                                        </div>
+                                    <% elsif question.is_location? %>
+                                        <!-- Text Field Response -->
+                                        <%= text_field_tag question.id, qvalue, placeholder: "Please Type In Your Answer Here", required: question_required, id: question.id, class: "form-control pac-target-input autocomplete_address" %>
+
+                                    <% elsif question.is_yes_no? %>
+                                        <!-- Boolean Field Response -->
+                                        <%= select_tag question.id, options_for_select(['Yes', 'No'], qvalue), class: "non_other_select form-control", prompt: "Please Choose One Below", required: question_required %>
+                                    <% elsif question.is_mc? %>
+                                        <!-- Select/Multiple Choice Field Response -->
+                                        <%= select_tag question.id, options_from_collection_for_select(question.survey_multiple_choices, :id, :choice_item, qvalue), prompt: "Please Choose One Below", class: question.allow_other ? "other_select form-control" : "non_other_select form-control",  required: question_required %>
+                                    <% elsif question.is_rating? %>
+                                        <!-- Rating Field Response -->
+                                        <div id="<%= question.id %>-range"></div>
+                                        <%= hidden_field_tag question.id,  params["#{question.id}"], id: question.id %>
+                                        <script type="text/javascript">
+                                            var default_rating = <%= @survey.preload ? question.find_answer(@contact_id) : 0 %>
+                                            $("#<%= question.id %>-range").ionRangeSlider({
+                                                min: 0,
+                                                max: 10,
+                                                from: default_rating,
+                                                type: 'single',
+                                                step: 1,
+                                                prettify: true,
+                                                hasGrid: true,
+                                                min_interval: 1,
+                                                from: <%= params["#{question.id}"].blank? ? "null" : params["#{question.id}"] %>,
+                                                onFinish: function (data) {
+                                                    // fired on pointer release
+                                                    document.getElementById("<%= question.id %>").value = data.fromNumber;
+                                                    console.log(`Range Value: ${document.getElementById("<%= question.id %>").value}`)
+                                                },
+                                                onUpdate: function (data) {
+                                                    // fired on changing slider with Update method
+                                                    document.getElementById("<%= question.id %>").value = data.fromNumber;
+                                                },
+                                                onStart: function (data) {
+                                                    console.log("Slider Start");
+                                                }
+                                            });
+                                        </script>
+                                    <% elsif question.is_phone_number? %>
+                                        <%= text_field_tag question.id, qvalue, min: 0, placeholder: "Please Type In Your Phone Number Here", required: question.required, id: question.id, class: "form-control quantity" %>
+                                    <% elsif question.is_signature? %>
+                                         <%= text_field_tag question.id, qvalue, min: 0, placeholder: "Sign Here", id: question.id, class: "form-control quantity signature-input", style: 'font-family: cursive;' %>
+                                         <%= check_box :confirm_signature, value: false %> <i></i> Confirm this is your digital signature.
+                                    <% end %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <div class="row justify-content-md-center">
+                                <% if question_iterator == 1 %>
+                                    <div class="col-lg-12 text-center">
+                                        <button class="btn btn-lg btn-primary" type="button" onclick="nextQuestion()">Next</button>
+                                    </div>
+                                <% else %>
+                                    <div class="col-lg-3">
+                                        <button class="btn btn-lg btn-warning float-left" type="button" onclick="previousQuestion()">Previous</button>
+                                        <button class="btn btn-lg btn-primary float-right" type="button" onclick="nextQuestion()">Next</button>
+                                    </div>
+                                <% end %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% question_iterator += 1 %>
+            <% end %>
+
+            <!-- Submit -->
+            <div class="col-lg-12" id="submit_panel">
+                <div class="ibox ">
+                    <div class="ibox-content text-center">
+                        <% if !@survey.submit_text.blank? %>
+                            <br />
+                            <div class="col-lg-12">
+                                <%= @survey.submit_text.html_safe %>
+                            </div>
+                        <% else %>
+                            <h3>Submit Your Response</h3>
+                        <% end %>
+                        <br />
+                            <button class="btn btn-xl btn-primary" type="submit" id="submit"><strong><%= @survey.submit_button_text.blank? ? "Submit Response" : @survey.submit_button_text %></strong></button>
+                        <br />
+                        <br />
+                        <small>You Are Submitting Your Answers To The Account <%= @organization.name %></small>
+                        <br />
+                        <button class="btn btn-xs btn-default" type="button" onclick="reviewQuestions()">Review Questions</button>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+<% content_for :javascript do %>
+
+    <script type="text/javascript">
+
+        var question_array = <%= @questions.pluck(:id).to_json %>;
+
+        var activeQuestion = null;
+
+        function reviewQuestions() {
+            event.preventDefault();
+            activeQuestion = question_array[0];
+            activatePanel();
+            submitArea(false);
+        }
+
+        function nextQuestion() {
+            event.preventDefault();
+            //--> Check to see if the question meets the requirements necessary (required, min, max)
+            var questionElement =  document.getElementById(activeQuestion);
+            if (!questionElement.checkValidity()) {
+                return false;
+            }
+            console.log(`Active Question: ` + activeQuestion)
+            //--> Determine Next Question
+            var index_of_question = question_array.indexOf(activeQuestion)
+            console.log(`Next Question ${index_of_question + 1} | Question Array Length: ${question_array.length}`)
+            deactivatePanel(activeQuestion);
+            // Iterate through to find the next active question
+            index_of_question = index_of_question + 1;
+            if (index_of_question == question_array.length) {
+                submitArea(true);
+            } else {
+                var questionElement =  document.getElementById(question_array[index_of_question]);
+                var questionAdvancedValidation = questionElement.customval
+
+                console.log(`Activating Question: ${question_array[i]}`)
+                activeQuestion = question_array[index_of_question];
+                activatePanel();
+            }
+        }
+
+        function submitArea(state) {
+            var submitPanel =  document.getElementById("submit_panel");
+            if (state == true) {
+                submitPanel.style.display = "block";
+                // event.preventDefault();
+            }else{
+                submitPanel.style.display = "none";
+                // event.preventDefault();
+            }
+        }
+
+        function previousQuestion() {
+            event.preventDefault();
+            var index_of_question = question_array.indexOf(activeQuestion) - 1
+            deactivatePanel(activeQuestion);
+
+            activeQuestion = question_array[index_of_question];
+            console.log(activeQuestion)
+
+            var questionElement =  document.getElementById(question_array[index_of_question]);
+            console.log(questionElement);
+            var questionAdvancedValidation = questionElement.customval
+            console.log(`Activating Question: ${question_array[i]}`)
+            activeQuestion = question_array[index_of_question];
+            activatePanel();
+        }
+
+        function deactivatePanel(panel_id){
+            console.log(`Deactivating Panel: ${panel_id}`)
+            var panel =  document.getElementById(`question-area-${panel_id}`);
+            panel.style.display = "none";
+        }
+
+        function activatePanel(){
+            var panel =  document.getElementById(`question-area-${activeQuestion}`);
+            panel.style.display = "block";
+        }
+
+        function isQuestionValid(question_id) {
+            var questionElement =  document.getElementById(question_id);
+            var questionAdvancedValidation = questionElement.customval
+            if (!questionAdvancedValidation !== null || !questionAdvancedValidation != "") {
+                // Run AJAX
+                var questionAnswerJSON = {};
+                questionAnswerJSON["currentQuestionId"] = question_id;
+                for (i =0; i<question_array.length; i++) {
+                    var iteratingQuestion =  document.getElementById(question_array[i]);
+                    console.log(`Iterating Question: ${iteratingQuestion}`)
+                    questionAnswerJSON[`${question_array[i]}`] = iteratingQuestion.value;
+                }
+                return Rails.ajax({
+                    url: "/survey/validation_check",
+                    type: "get",
+                    async: false,
+                    data: new URLSearchParams(questionAnswerJSON).toString(),
+                    success: function(data) {
+                        console.log("Validation Success");
+                    },
+                    error: function(data) {
+                        console.log("Validation ERROR");
+                    }
+                })
+            } else {
+                return true
+            }
+        }
+
+
+        //--- //
+
+        function initializeAutocomplete(class_name) {
+            console.log("Initialize Autocomplete")
+            var element = document.getElementsByClassName('autocomplete_address')[0]
+            var autocomplete = new google.maps.places.Autocomplete(element, { types: ['address'], componentRestrictions: {country: 'us'} });
+            autocomplete.setFields(['formatted_address']);
+            autocomplete.addListener('place_changed', fillInAddress)
+        }
+
+        function fillInAddress() {
+            var place = this.getPlace();
+            var element = document.getElementsByClassName('autocomplete_address')[0]
+            element.value = place.formatted_address;
+        }
+
+        // google.maps.event.addDomListener(window, 'load', function() {
+        //     initializeAutocomplete('autocomplete_address');
+        // });
+
+
+        $(document).on('turbolinks:load', function () {
+            console.log("This will run when dom is loaded!");
+        });
+
+
+        $(function() {
+            if (activeQuestion == null) {
+                activeQuestion = question_array[0];
+            }
+
+            console.log(`Question Array: ${question_array} | Length: ${question_array.length}`)
+            for (let i = 0; i < question_array.length; i++) {
+                console.log("Running Initial Deactivation.");
+                if (i != 0 ){
+                    deactivatePanel(question_array[i]);
+                }
+            }
+
+            submitArea(false);
+
+
+            $(".numberIncrement").TouchSpin({
+                buttondown_class: 'btn btn-white',
+                buttonup_class: 'btn btn-white',
+                min: 0
+            });
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            // $(".non_other_select").select2({
+            //     placeholder: "Choose One Below",
+            //     allowClear: true
+            // });
+
+            $(".other_select").select2({
+                placeholder: "Choose One Below Or Type In Your Response",
+                allowClear: true,
+                tags: true
+            });
+
+            $('.input-group.date').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true
+            });
+
+        });
+
+    </script>
+<% end %>

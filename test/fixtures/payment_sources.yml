@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  card_id: MyString
+  brand: MyString
+  exp_month: MyString
+  exp_year: MyString
+  last4: MyString
+  stripe_creation: 2019-06-20 13:14:50
+
+two:
+  card_id: MyString
+  brand: MyString
+  exp_month: MyString
+  exp_year: MyString
+  last4: MyString
+  stripe_creation: 2019-06-20 13:14:50

@@ -1,0 +1,27 @@
+<div class="middle-box text-center loginscreen animated fadeInDown">
+    <div>
+        <div>
+          <%= image_tag "logos/Mobilize_Logo_Comms_Special Aqua.png", size: "200x200", alt: "MUS Logo Blue" %>
+        </div>
+        <h3>Resend confirmation instructions</h3>
+          <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }) do |f| %>
+            <%= devise_error_messages! %>
+            <% flash.each do |key, value| %>
+              <div class="alert alert-danger">
+                    <%= value %>
+              </div>
+            <% end %>
+            <div class="form-group">
+                <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "Email", required: true, value: (resource.pending_reconfirmation? ? resource.unconfirmed_email : resource.email) %>
+            </div>
+
+            <%= f.submit "Resend confirmation instructions", class: "btn btn-primary block full-width m-b" %>
+           
+            <small><%= link_to "Forgot password?", new_password_path(resource_name) %></small><br />
+
+            <a class="btn btn-sm btn-white btn-block" href="<%= url_for :controller => 'users/sessions', :action => 'new' %>">Login</a>
+            <a class="btn btn-sm btn-white btn-block" href="<%= url_for :controller => 'users/registrations', :action => 'new' %>">Create an account</a>
+        <% end %>
+        <p class="m-t"> <small>Mobilize Comms & Blueprint 108 &copy; 2019-2020</small> </p>
+    </div>
+</div>
