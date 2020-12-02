@@ -1,5 +1,0 @@
-GrapeSwaggerRails.options.url      = '/api/swagger_doc'
-GrapeSwaggerRails.options.app_url  = 'https://api.mobilizeus.com'
-#GrapeSwaggerRails.options.app_url  = 'http://localhost:3000'
-GrapeSwaggerRails.options.app_name = 'Mobilize Comms API'
-# GrapeSwaggerRails.options.headers['X-Api-Key'] = 'c8dcdbkbglbzbko418bsrjiuzp8jimvbczffdx102bbgn3svp0g4ousbpkgt7hmo19l50z6k8pwecw3sruzs8lxan1h5iociuk12vipg8vo72w8miw1g8eiw0d2uqcghummh7vg1283e6pftqf0fvw84zc99hb2a34z02zd1hl1tcg8qzgy6jneryf1eeuzamwh2dyt05318ej3p0xxs2kwch3d7ajt0ieza6zlkrwvppwitfuxtbkkf4jpkdaq1'

@@ -1,8 +1,0 @@
-{
-  "name": "inspinia",
-  "private": true,
-  "dependencies": {
-    "datatables.net": "^1.10.22",
-    "jquery-mask-plugin": "^1.14.16"
-  }
-}

@@ -1,2 +1,0 @@
-class ApiLog < ApplicationRecord
-end
